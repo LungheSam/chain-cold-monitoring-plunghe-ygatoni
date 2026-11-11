@@ -81,7 +81,7 @@ Added in Phase 4.
 | 0 | Plan and skeleton | done |
 | 1 | Alarm logic + simulator | done |
 | 2 | Real edge drivers, bring-up, Fritzing wiring list | done (not yet run on the Pi) |
-| 3 | Back end (MQTT, Firestore, WoT, SMS, auth) | |
+| 3 | Back end (MQTT, Firestore, WoT, SMS, auth) | done (Firestore not yet run against a real project) |
 | 4 | Dashboard + seed data | |
 | 5 | Keypad, lock, QR unlock | |
 | 6 | FreeCAD enclosure | |

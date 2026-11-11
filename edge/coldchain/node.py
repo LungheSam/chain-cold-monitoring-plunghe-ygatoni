@@ -107,6 +107,8 @@ class Node:
     def telemetry_message(self, snap):
         msg = {key: snap[key] for key in (
             "internalTemp", "ambientTemp", "humidity", "doorOpen", "mainsPower", "status", "outOfRangeSeconds")}
+        msg["activeAlarms"] = snap["activeAlarms"]
+        msg["thresholds"] = self.engine.thresholds()   # so the Web Thing shows the node's real limits
         msg["ts"] = int(self.clock.time() * 1000)
         msg["timeSynced"] = self.clock.synced()
         return msg

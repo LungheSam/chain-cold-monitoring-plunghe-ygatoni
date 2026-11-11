@@ -71,13 +71,15 @@ Created by hand (or by a small admin script) after the person signs up in Fireba
 name, phone ("+2507XXXXXXXX"), units: ["cold-unit-01"], active: bool
 ```
 
-### `smsLog/{autoId}` (back end only, not readable by clients)
+### `smsLog/{autoId}` and `smsState/{unitId}` (back end only, not readable by clients)
 
 ```
-ts, unitId, type, kind: "alert" | "clear", to, message, providerStatus
+smsLog:   ts, unitId, type, kind: "alert" | "clear", to, message, providerStatus
+smsState: lastAlertAt: {<eventType>: ms}, open: {<problem>: {sentAt, ts}}
 ```
 
-Used for the 15-minute de-duplication, so it survives a back end restart.
+`smsLog` is the audit trail. `smsState` holds the 15-minute de-duplication and which alerts still
+wait for a follow-up, so both survive a back end restart.
 
 ## Free-tier arithmetic (Spark plan: 50 000 reads, 20 000 writes per day)
 

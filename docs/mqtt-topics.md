@@ -4,7 +4,7 @@ Unit ID: `cold-unit-01`. All payloads are UTF-8 JSON. `ts` is milliseconds since
 
 | Topic | Direction | QoS / retain | Payload |
 |---|---|---|---|
-| `coldchain/{unitId}/telemetry` | node → cloud | 1 | `{ts, internalTemp, ambientTemp, humidity, doorOpen, mainsPower, status, outOfRangeSeconds, timeSynced}` |
+| `coldchain/{unitId}/telemetry` | node → cloud | 1 | `{ts, internalTemp, ambientTemp, humidity, doorOpen, mainsPower, status, outOfRangeSeconds, activeAlarms, thresholds, timeSynced}` |
 | `coldchain/{unitId}/event` | node → cloud | 1 | `{id, ts, type, details, timeSynced}` |
 | `coldchain/{unitId}/status` | node → cloud | 1, **retained** | `"online"` / `"offline"` (LWT) |
 | `coldchain/{unitId}/cmd` | cloud → node | 1 | `{id, action, params, expiresAt}` |

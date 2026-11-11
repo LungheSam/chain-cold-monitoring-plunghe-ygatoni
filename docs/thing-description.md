@@ -41,6 +41,10 @@ returns `504` after a 10 s timeout, `409` if the unit is offline).
 
 ## Validation
 
-A back-end test validates the served TD against the official W3C TD JSON Schema
-(`td-json-schema-validation.json` from the `w3c/wot-thing-description` repository), vendored into
-`backend/test/fixtures/` with the source URL and download date noted. Done in Phase 3.
+`backend/test/td.test.js` validates the served TD against the official W3C TD 1.1 JSON Schema
+(`backend/test/fixtures/td-schema-v1.1.json`, downloaded from its `$id`
+<https://www.w3.org/2022/wot/td-schema/v1.1>), and calls every form in the TD against the running
+server. Note: the `main` branch of the `w3c/wot-thing-description` repository holds the draft of the
+next TD version and rejects the 1.1 `@context`, so it is not used.
+
+Event forms: `events` (all events) and `events/{TYPE}` (one type), both `subprotocol: "sse"`.

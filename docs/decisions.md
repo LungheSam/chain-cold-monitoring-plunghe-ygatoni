@@ -147,6 +147,11 @@ messages shown in their simulator). The demo uses the live account with the **de
 ID** (leave `AT_SENDER_ID` empty), so no sender-ID registration is needed. The live account needs
 credit topped up before 2 Dec.
 
+We call the Africa's Talking REST API (`POST /version1/messaging`) with `fetch` instead of the
+`africastalking` npm SDK: the SDK (0.8.x) pulls in old `axios`, `joi` and `body-parser` versions
+with known high-severity vulnerabilities (npm audit, 11 Nov 2026). VERIFY the first real send in the
+sandbox simulator.
+
 ## D16. Timeline: decided
 
 Today is 11 Nov. The design review is on 20 Nov (9 days), and firmware plus hardware must be clearly

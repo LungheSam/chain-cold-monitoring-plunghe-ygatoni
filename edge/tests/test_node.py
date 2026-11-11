@@ -30,7 +30,8 @@ def test_node_publishes_telemetry_every_30_s(tmp_path):
     assert len(telemetry) == 3                 # at 0 s, 30 s, 60 s
     msg = telemetry[0]
     assert set(msg) == {"ts", "internalTemp", "ambientTemp", "humidity", "doorOpen", "mainsPower",
-                        "status", "outOfRangeSeconds", "timeSynced"}
+                        "status", "outOfRangeSeconds", "timeSynced", "activeAlarms", "thresholds"}
+    assert msg["thresholds"] == {"minC": 2.0, "maxC": 8.0, "confirmDelayS": 20, "doorLimitS": 15}
     assert msg["status"] == "OK"
 
 
