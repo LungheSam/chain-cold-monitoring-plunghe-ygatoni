@@ -45,8 +45,19 @@ flowchart LR
    Firestore, pushes events to SSE clients and decides on SMS.
 4. The dashboard reads Firestore directly with real-time listeners. It calls the back end only for
    actions, with a Firebase ID token.
-5. Actions become MQTT commands with an ID, a 30 s expiry and an HMAC signature. The node replies
-   on `cmd/result`, and the back end returns that result in the HTTP response.
+5. Actions become MQTT commands with an ID and a 30 s expiry. The node replies on `cmd/result`,
+   and the back end returns that result in the HTTP response.
+
+## Deployment (demo)
+
+| Part | Where |
+|---|---|
+| Broker | HiveMQ Cloud Serverless (TLS 8883) |
+| Back end | Railway (Hobby plan, always on, one instance, HTTPS URL) |
+| Dashboard + unlock page | Firebase Hosting |
+| Database / auth | Firebase Firestore + Authentication (Spark free plan) |
+| SMS | Africa's Talking live account, default sender ID |
+| Development | Mosquitto in Docker, Firebase emulators, AT sandbox |
 
 ## What still works when
 

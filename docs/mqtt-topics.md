@@ -7,7 +7,7 @@ Unit ID: `cold-unit-01`. All payloads are UTF-8 JSON. `ts` is milliseconds since
 | `coldchain/{unitId}/telemetry` | node → cloud | 1 | `{ts, internalTemp, ambientTemp, humidity, doorOpen, mainsPower, status, outOfRangeSeconds, timeSynced}` |
 | `coldchain/{unitId}/event` | node → cloud | 1 | `{id, ts, type, details, timeSynced}` |
 | `coldchain/{unitId}/status` | node → cloud | 1, **retained** | `"online"` / `"offline"` (LWT) |
-| `coldchain/{unitId}/cmd` | cloud → node | 1 | `{id, action, params, expiresAt, sig}` |
+| `coldchain/{unitId}/cmd` | cloud → node | 1 | `{id, action, params, expiresAt}` |
 | `coldchain/{unitId}/cmd/result` | node → cloud | 1 | `{id, ok, error}` |
 
 ## Telemetry
@@ -16,8 +16,10 @@ Unit ID: `cold-unit-01`. All payloads are UTF-8 JSON. `ts` is milliseconds since
   the last message. At most one message every 5 s, so a fast change cannot flood the broker.
 - `internalTemp`, `ambientTemp` and `humidity` are `null` when the sensor has failed.
 - `status` is `OK`, `WARNING` or `ALARM` (the back end adds `OFFLINE`). See `decisions.md` (D9).
-- `timeSynced` is `false` if the Pi clock was not NTP-synchronised when the message was made
-  (see D6). The back end then trusts its own receive time for live state.
+- `timeSynced` is `false` if the Pi clock was not NTP-synchronised when the message was made.
+  The node holds such messages in its queue and fixes their `ts` once the clock syncs (D6), so in
+  practice the back end only sees `timeSynced: true`. If one arrives anyway, the back end uses its
+  own receive time for live state.
 
 ## Events
 
@@ -40,8 +42,7 @@ Unit ID: `cold-unit-01`. All payloads are UTF-8 JSON. `ts` is milliseconds since
 - `action`: `acknowledgeAlarm`, `setThresholds`, `unlockDoor`.
 - `expiresAt` = send time + 30 s. The node ignores a command that has expired, or whose `id` it has
   already seen (it keeps the last 100 IDs).
-- `sig` = HMAC-SHA256 of `id|action|expiresAt|JSON(params)` with the shared `CMD_HMAC_SECRET`.
-  The node rejects a command with a bad signature (D11).
+- Security is TLS plus broker passwords: only the back end's MQTT user may publish on `cmd` (D11).
 - The node always answers on `cmd/result` with the same `id`.
 
 ## Online / offline

@@ -29,7 +29,13 @@ unlock page.
 
 - Unit ID `cold-unit-01`. Topics `coldchain/{unitId}/telemetry|event|status|cmd|cmd/result`
   (`docs/mqtt-topics.md`). Status is retained, with an LWT of `offline`.
-- Commands: `{id, action, params, expiresAt, sig}`, 30 s expiry, de-duplicated by id, HMAC-signed.
+- Commands: `{id, action, params, expiresAt}`, 30 s expiry, de-duplicated by id. Security = TLS +
+  broker passwords only (no HMAC, D11).
+- Deployment: HiveMQ Cloud broker, back end on **Railway** (paid, always on, 1 instance, service
+  account JSON in the `FIREBASE_SERVICE_ACCOUNT` variable), dashboard on Firebase Hosting, Africa's
+  Talking with the default sender ID.
+- Clock: NTP only, no RTC. Messages carry `timeSynced`, and unsynced queued messages are re-timed
+  from monotonic time once NTP syncs (D6).
 - TD at `GET /things/cold-unit-01`. Forms: `/things/{id}/properties/{name}` (GET, PUT for
   `thresholds`), `POST /things/{id}/actions/{name}`, `GET /things/{id}/events` (SSE).
 - Profiles: `real` = 300/120/5 s, `demo` = 20/15/3 s (TEMP_CONFIRM_S / DOOR_OPEN_LIMIT_S / POWER_CONFIRM_S).
@@ -70,6 +76,10 @@ cd backend && npm test
 # broker
 cd broker && ./make-certs.sh <laptop-ip> && docker compose up -d
 ```
+
+CAD tools are installed but not on PATH:
+`"/c/Program Files/FreeCAD 1.1/bin/freecadcmd.exe"` (FreeCAD 1.1.4) and
+`"/c/Program Files/KiCad/10.0/bin/kicad-cli.exe"` (KiCad 10.0.3).
 
 ## Phase status
 

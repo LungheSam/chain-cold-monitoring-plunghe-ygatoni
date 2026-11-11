@@ -1,57 +1,77 @@
 # Decisions and open questions
 
 Status: **proposed** = my recommendation, waiting for Samuel/Yves to confirm; **decided** = agreed.
+All of D1–D17 were reviewed with the team on 11 Nov 2026.
 
-## D1. Node.js 24 LTS instead of 20: proposed
+## Tools on the development laptop
+
+- FreeCAD 1.1.4: `C:\Program Files\FreeCAD 1.1\bin\freecadcmd.exe` (not on PATH)
+- KiCad 10.0.3: `C:\Program Files\KiCad\10.0\bin\kicad-cli.exe` (not on PATH)
+- Node 24, Python 3.14, OpenSSL 3.5
+- Docker Desktop: not detected yet on 11 Nov
+
+## D1. Node.js 24 LTS instead of 20: decided
 
 Node 20 reached end-of-life on 30 April 2026, so it no longer gets security fixes. Node 24 is the
 current LTS and is already installed on the laptop (v24.21). The code uses nothing version-specific;
 `package.json` asks for `>=22.12`.
 
-## D2. Raspberry Pi OS version: proposed
+## D2. Raspberry Pi OS version: decided
 
 The brief says Bookworm / Python 3.11. Since late 2025 the default Raspberry Pi OS image is based on
 Debian 13 "Trixie" (Python 3.13). Both are fine: same `/boot/firmware/config.txt`, same overlays,
 gpiozero + lgpio on both. Keep whatever is on the SD card now. The code stays compatible with
 Python 3.11.
 
-## D3. MQTT broker for the demo: HiveMQ Cloud Serverless (free): proposed
+## D3. MQTT broker for the demo: HiveMQ Cloud Serverless (free): decided
 
 - Free, TLS on 8883 with a public CA certificate (no CA file to copy to the Pi), supports QoS 1,
   retained messages and LWT, so nothing in our design changes. Nothing to host or keep awake.
-- **Risk: the campus Wi-Fi may block outbound port 8883.** Test it this week from the Pi on the
-  campus network. Fallbacks: MQTT over WebSockets on HiveMQ's 8884, or a phone hotspot at the demo.
-- Per-credential topic permissions on the free tier: VERIFY in the HiveMQ console. If they are not
-  available, the HMAC-signed commands (D11) still stop a forged `unlockDoor`.
+- The team confirmed that the campus network does not block HiveMQ Cloud.
+- Security is username/password over TLS (D11). Give the node and the back end **separate
+  credentials**, and if the HiveMQ console offers per-credential topic permissions, restrict them
+  like `broker/mosquitto/config/acl` (VERIFY in the console).
 - Mosquitto in Docker stays the development broker.
 
-## D4. Where the back end runs at the demo: proposed, decide in Phase 3
+## D4. Where the back end runs at the demo: Railway (paid Hobby plan): decided
 
-- Render's free web services sleep after ~15 min with no HTTP traffic, which stops the MQTT
-  subscriber (missed events, no SMS). Railway has no permanent free tier (trial credit only).
-- **Recommended: run the back end on a laptop at the demo** and expose it over HTTPS with a free
-  Cloudflare quick tunnel (`cloudflared tunnel --url http://localhost:3000`). HTTPS is required
-  because the dashboard on Firebase Hosting is HTTPS and browsers block calls to plain HTTP.
-- Alternative if you want it always on: a Google Cloud `e2-micro` "always free" VM (needs a billing
-  account / card).
+- The team will pay for Railway. On the Hobby plan (VERIFY the current price on railway.com) a
+  service runs continuously and does not sleep, so the MQTT subscriber stays connected.
+  Leave Railway's optional "serverless / app sleeping" setting **off** for this service.
+- Railway gives an HTTPS URL (`*.up.railway.app`), which the dashboard on Firebase Hosting needs.
+- No secret files on Railway: the Firebase service-account JSON goes in an environment variable
+  (`FIREBASE_SERVICE_ACCOUNT`, the whole JSON), and every other secret is a Railway variable.
+- Run only **one** instance (replicas = 1). Two instances would both send each SMS and both answer
+  commands.
+- Fallback if Railway has a problem on the day: run the back end on a laptop (`npm start`).
 - The dashboard's live view reads Firestore directly, so it keeps working even if the back end is down.
 
-## D5. Public TD and read-only properties: proposed
+## D5. Public TD and read-only properties: decided
 
 TD, read-only properties and the SSE event stream are public (`nosec`). Writes and actions need a
 Firebase ID token and the `supervisor` role. Details in `thing-description.md`.
 
-## D6. The Pi 4 has no real-time clock: proposed
+## D6. Clock: network time (NTP) only, no RTC module: decided
 
-After a reboot without Internet, the Pi's clock starts at the last saved time (fake-hwclock), so
-event times can be wrong until NTP syncs. This matters for the "reboot during an excursion" test.
+The Pi 4 has no real-time clock. It syncs over the network with `systemd-timesyncd`, within
+seconds of Wi-Fi coming up. The only weak case is **a reboot while there is no network**: the
+clock then starts at the last saved time (fake-hwclock), so it is behind by however long the Pi was
+off, until the network returns. The software handles this without an RTC:
 
-- The alarm logic and the out-of-range timer use `time.monotonic()`, so they are not affected.
-- Every message carries `timeSynced` (from `timedatectl show -p NTPSynchronized`).
-- **Recommendation: add a DS3231 RTC module** (cheap, I2C 0x68, `dtoverlay=i2c-rtc,ds3231`).
-  Then timestamps are right even offline.
+- The alarm logic and the out-of-range timer use `time.monotonic()`, so they are never affected.
+- Every message is stored with its monotonic time and a `timeSynced` flag (from
+  `timedatectl show -p NTPSynchronized`).
+- When the clock syncs, the node works out `offset = time.time() - time.monotonic()` and fixes the
+  timestamps of every unsynced message still in the offline queue before sending them. Monotonic
+  time is continuous within one boot, so this is exact.
+- The time the Pi was off during an excursion is also recovered after sync: the last saved state
+  has a synced wall-clock time, so `off time = (sync time - seconds since boot) - last save time`.
+- Only a message already **sent** while unsynced keeps a wrong time. To avoid that, the node keeps
+  unsynced messages in the queue until the clock syncs. Without network it cannot send anyway.
 
-## D7. How out-of-range time is counted: proposed
+A DS3231 module stays optional, only for a real deployment with long outages.
+
+## D7. How out-of-range time is counted: decided
 
 - The **cumulative timer uses the raw limits**: it counts every second the reading is above 8.0 °C
   or below 2.0 °C, from the first out-of-range reading (not after the confirmation delay).
@@ -63,10 +83,11 @@ event times can be wrong until NTP syncs. This matters for the "reboot during an
   excursion record with `confirmed: false`. Then the total always equals the sum of the excursions,
   and the dashboard can hide unconfirmed ones by default.
 - After a reboot in the middle of an excursion: the excursion is reopened from the saved file. The
-  time the Pi was off is added only if the clock is trusted (D6) and the first reading after boot
-  is still out of range. Otherwise the gap is recorded as `unknownGapS` in the excursion.
+  time the Pi was off is added once the clock is synced (D6), if the first reading after boot is
+  still out of range. It is recorded separately as `offlineGapS` in the excursion, so it is clear
+  that this part was assumed, not measured.
 
-## D8. Lock safety if the program crashes: proposed
+## D8. Lock safety if the program crashes: decided
 
 If the Python process is killed while the lock is energised, the GPIO can **stay HIGH**. The gate
 pull-down only helps when the pin is an input. So:
@@ -76,7 +97,7 @@ pull-down only helps when the pin is an input. So:
 - The software never holds the lock on for more than 5 s.
 - Cheap solenoids are often rated for short duty cycles only: VERIFY on the lock's datasheet/listing.
 
-## D9. What WARNING means: proposed
+## D9. What WARNING means: decided
 
 - `WARNING`: a condition is present but not yet confirmed (temperature out of range inside the
   confirmation delay, door open but under the limit, sense line low but not yet `POWER_CONFIRM_S`),
@@ -85,28 +106,30 @@ pull-down only helps when the pin is an input. So:
 - `OK`: none of the above.
 - `OFFLINE`: set by the back end only.
 
-## D10. Firestore summaries and emulator: proposed
+## D10. Firestore summaries and emulator: decided
 
 Hourly and daily summary documents keep the 7-day chart and the analytics cheap. Use the Firebase
 emulator for development and seeding. Arithmetic in `data-model.md`.
 
-## D11. Signed commands: proposed
+## D11. Command security: broker passwords over TLS, no HMAC: decided
 
-Commands carry an HMAC-SHA256 signature made with a secret shared by the back end and the node.
-Without it, anyone holding any broker password could publish `unlockDoor`. About 10 lines of code on
-each side.
+Commands are protected by TLS plus a username/password per client. Only the back end has
+credentials allowed to publish on `cmd` (Mosquitto ACL in development; HiveMQ permissions if
+available, D3). Accepted risk: anyone who gets a broker password could publish `unlockDoor`, so
+broker passwords are never shared or put in the dashboard, and they are kept only in `.env` files
+and Railway variables.
 
-## D12. Delayed (buffered) messages: proposed
+## D12. Delayed (buffered) messages: decided
 
 When the node comes back online it replays its queue. The back end stores everything but only
 updates live state from messages newer than what it already has. An SMS for an event older than
 5 minutes is marked "(delayed)", and is skipped if the problem already cleared in the same batch.
 
-## D13. LCD level shifter: proposed
+## D13. LCD level shifter: decided
 
 Use a BSS138 level-shifter module between the Pi and the 5 V PCF8574 backpack. Reasons in `wiring.md`.
 
-## D14. Demo cooling: Peltier check: proposed
+## D14. Demo cooling: Peltier check: decided
 
 A single TEC1-12706 in a cool box may struggle to bring it below 8 °C and hold it there in a warm
 room. Test this week. Plan B for the demo: frozen gel packs in the box, with the Peltier optional.
@@ -117,13 +140,14 @@ Either way:
 - fuse just above the adapter rating (e.g. a 7.5 A blade fuse for a 6 A adapter) on the 12 V line;
 - never power the Peltier without its hot-side heat sink and fan.
 
-## D15. Africa's Talking live SMS in Rwanda: open
+## D15. Africa's Talking SMS: decided
 
-The sandbox is free and shows messages in their simulator. Live SMS costs credit, and Rwanda may
-require a registered sender ID. VERIFY with Africa's Talking early (account, top-up, sender ID), as
-approval can take days. If live is not ready by 2 Dec, demo with the sandbox simulator on screen.
+The team confirmed that Africa's Talking SMS works in Rwanda. Development uses the sandbox (free,
+messages shown in their simulator). The demo uses the live account with the **default shared sender
+ID** (leave `AT_SENDER_ID` empty), so no sender-ID registration is needed. The live account needs
+credit topped up before 2 Dec.
 
-## D16. Timeline: proposed
+## D16. Timeline: decided
 
 Today is 11 Nov. The design review is on 20 Nov (9 days), and firmware plus hardware must be clearly
 in progress by then. Proposed order:

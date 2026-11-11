@@ -7,4 +7,8 @@ freecadcmd enclosure.py
 ```
 
 It will write STEP + STL per printed part, and an editable `.FCStd`, into `exports/`.
-FreeCAD is not installed on the development laptop yet: install FreeCAD 1.x from freecad.org.
+On the development laptop FreeCAD 1.1.4 is installed but not on PATH, so run:
+
+```bash
+"/c/Program Files/FreeCAD 1.1/bin/freecadcmd.exe" enclosure.py
+```

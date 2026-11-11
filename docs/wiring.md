@@ -30,8 +30,8 @@ Review notes:
 - **UPS board: VERIFY which model.** Many UPS HATs sit on the 40-pin header and use I2C
   (e.g. an INA219 at 0x40–0x43) or a GPIO for "power lost". Send me the model so I can check it
   does not clash with the map above and with the carrier PCB stacking.
-- A DS3231 RTC module (I2C 0x68) is recommended (see `decisions.md` D6). It shares SDA/SCL and
-  clashes with nothing.
+- No RTC module: the Pi uses network time, and the software corrects offline timestamps
+  (`decisions.md` D6). If a DS3231 (I2C 0x68) is added later, it clashes with nothing.
 
 ## Mains sense input
 
