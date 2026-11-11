@@ -237,6 +237,19 @@ def test_internal_probe_fault_is_an_alarm(bad_value, reason):
     assert engine.snapshot()["internalTemp"] is None
 
 
+def test_fault_counts_samples_not_loop_passes():
+    """The same bad sample seen by 10 loop passes is still only one bad read."""
+    from coldchain.alarm import Reading
+    engine, clock = make_engine()
+    run(engine, clock, 2, temp=5.0)
+    events = []
+    for i in range(20):                       # 2 s of 0.1 s loop passes, 2 new samples
+        clock.advance(0.1)
+        events += engine.update(Reading(85.0, 24.0, 60.0, False, True, internal_new=(i % 10 == 0)))
+    assert events == []
+    assert engine.internal_fault is False
+
+
 def test_single_85_reading_does_not_count_as_out_of_range():
     engine, clock = make_engine()
     run(engine, clock, 5, temp=5.0)

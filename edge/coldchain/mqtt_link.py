@@ -3,28 +3,25 @@
 - TLS + username/password (docs/decisions.md D11).
 - Last Will: coldchain/{unit}/status = "offline" (retained). On connect we publish "online" (retained).
 - Subscribes to coldchain/{unit}/cmd. Commands are put in a queue for the main loop.
-- Phase 1: while offline, events are kept in memory and sent on reconnect; telemetry is dropped.
-  Phase 2 replaces this with a SQLite queue that survives a reboot.
+- send() is used by the outbox: it returns the MQTT message id, and the id comes back through
+  take_acked() once the broker has acknowledged it (PUBACK).
 """
 import json
 import logging
 import queue
-import threading
 
 import paho.mqtt.client as mqtt
 
 log = logging.getLogger(__name__)
-
-MAX_PENDING = 1000
 
 
 class MqttLink:
     def __init__(self, unit_id, host, port, username="", password="", use_tls=True, ca_file=""):
         self.base = "coldchain/%s" % unit_id
         self.connected = False
+        self.epoch = 0                    # +1 on every new connection
         self.commands = queue.Queue()
-        self.pending = []                 # (topic, payload) waiting for a connection
-        self.lock = threading.Lock()
+        self.acked = queue.Queue()        # message ids acknowledged by the broker
 
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=unit_id + "-edge")
         if username:
@@ -33,31 +30,27 @@ class MqttLink:
             # ca_file empty: use the system CA list (HiveMQ Cloud has a public certificate)
             self.client.tls_set(ca_certs=ca_file or None)
         self.client.will_set(self.base + "/status", "offline", qos=1, retain=True)
-        self.client.reconnect_delay_set(min_delay=1, max_delay=30)
+        self.client.reconnect_delay_set(min_delay=1, max_delay=10)   # retry at least every 10 s
         self.client.on_connect = self._on_connect
         self.client.on_disconnect = self._on_disconnect
         self.client.on_message = self._on_message
+        self.client.on_publish = self._on_publish
 
         log.info("MQTT connecting to %s:%s (tls=%s)", host, port, use_tls)
         self.client.connect_async(host, port, keepalive=60)
         self.client.loop_start()          # background thread, reconnects by itself
 
-    # ---------------------------------------------------------------- paho callbacks
+    # ---------------------------------------------------------------- paho callbacks (network thread)
 
     def _on_connect(self, client, userdata, flags, reason_code, properties):
         if reason_code.is_failure:
             log.error("MQTT connection refused: %s", reason_code)
             return
-        self.connected = True
-        log.info("MQTT connected")
         client.publish(self.base + "/status", "online", qos=1, retain=True)
         client.subscribe(self.base + "/cmd", qos=1)
-        with self.lock:
-            waiting, self.pending = self.pending, []
-        if waiting:
-            log.info("MQTT sending %d messages kept while offline", len(waiting))
-        for topic, payload in waiting:
-            client.publish(topic, payload, qos=1)
+        self.epoch += 1
+        self.connected = True
+        log.info("MQTT connected")
 
     def _on_disconnect(self, client, userdata, flags, reason_code, properties):
         if self.connected:
@@ -70,23 +63,29 @@ class MqttLink:
         except ValueError:
             log.warning("Ignoring command that is not JSON on %s", msg.topic)
 
+    def _on_publish(self, client, userdata, mid, reason_code, properties):
+        self.acked.put(mid)
+
     # ---------------------------------------------------------------- used by the node
 
-    def publish(self, subtopic, payload, keep_if_offline=False):
-        """Publish JSON on coldchain/{unit}/{subtopic}. Returns True if handed to the broker."""
-        topic = "%s/%s" % (self.base, subtopic)
-        data = json.dumps(payload)
-        if self.connected:
-            info = self.client.publish(topic, data, qos=1)
-            if info.rc == mqtt.MQTT_ERR_SUCCESS:
-                return True
-        if keep_if_offline:
-            with self.lock:
-                self.pending.append((topic, data))
-                if len(self.pending) > MAX_PENDING:
-                    self.pending.pop(0)
-                    log.error("Offline buffer full: oldest event dropped")
-        return False
+    def send(self, subtopic, data):
+        """Publish a JSON string with QoS 1. Returns the message id, or None if not connected."""
+        if not self.connected:
+            return None
+        info = self.client.publish("%s/%s" % (self.base, subtopic), data, qos=1)
+        if info.rc != mqtt.MQTT_ERR_SUCCESS:
+            return None
+        return info.mid
+
+    def publish(self, subtopic, payload):
+        """Fire-and-forget publish (command results: useless if late, so not queued)."""
+        return self.send(subtopic, json.dumps(payload)) is not None
+
+    def take_acked(self):
+        mids = []
+        while not self.acked.empty():
+            mids.append(self.acked.get_nowait())
+        return mids
 
     def take_commands(self):
         cmds = []

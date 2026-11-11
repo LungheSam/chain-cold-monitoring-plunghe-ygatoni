@@ -58,7 +58,7 @@ cp .env.example .env
 .venv/Scripts/python -m pytest
 ```
 
-Simulator commands and the file list: [edge/README.md](edge/README.md). On the Pi, see `edge/SETUP.md` (added in Phase 2).
+Simulator commands and the file list: [edge/README.md](edge/README.md). On the Pi, see [edge/SETUP.md](edge/SETUP.md).
 
 ### 3. Back end
 
@@ -80,7 +80,7 @@ Added in Phase 4.
 |---|---|---|
 | 0 | Plan and skeleton | done |
 | 1 | Alarm logic + simulator | done |
-| 2 | Real edge drivers, bring-up, Fritzing wiring list | |
+| 2 | Real edge drivers, bring-up, Fritzing wiring list | done (not yet run on the Pi) |
 | 3 | Back end (MQTT, Firestore, WoT, SMS, auth) | |
 | 4 | Dashboard + seed data | |
 | 5 | Keypad, lock, QR unlock | |

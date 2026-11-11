@@ -85,7 +85,7 @@ CAD tools are installed but not on PATH:
 
 - [x] Phase 0: plan and skeleton
 - [x] Phase 1: alarm logic + simulator (59 tests; `python -m coldchain.node`, see edge/README.md)
-- [ ] Phase 2: real edge drivers + bring-up + Fritzing wiring list
+- [x] Phase 2: real edge drivers + bring-up + Fritzing wiring list (edge/SETUP.md, docs/wiring.md)
 - [ ] Phase 3: back end
 - [ ] Phase 4: dashboard + seed data
 - [ ] Phase 5: keypad, lock, QR unlock

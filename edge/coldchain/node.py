@@ -5,7 +5,8 @@ Run from the edge/ folder:
     python -m coldchain.node --no-mqtt           # without a broker
     python -m coldchain.node --script scenarios/demo.txt   # scripted simulation
 
-In mock mode, type commands and press Enter (type `help`).
+MOCK_HARDWARE=1: fake sensors; type commands and press Enter (type `help`).
+MOCK_HARDWARE=0: real Pi hardware (coldchain/hardware.py); run by systemd (systemd/coldchain-node.service).
 """
 import argparse
 import logging
@@ -34,13 +35,15 @@ LCD_PAGE_S = 3        # line 2 of the LCD rotates every 3 s
 
 
 class Node:
-    def __init__(self, settings, clock, sensors, outputs, lcd, link=None):
+    def __init__(self, settings, clock, sensors, outputs, lcd, link=None, outbox=None, wifi_fn=None):
         self.settings = settings
         self.clock = clock
         self.sensors = sensors
         self.outputs = outputs
         self.lcd = lcd
         self.link = link
+        self.outbox = outbox          # SQLite queue; None when running without MQTT
+        self.wifi_fn = wifi_fn        # returns True if Wi-Fi is up; None on a laptop
 
         self.engine = AlarmEngine(settings, clock)
         self.state_path = os.path.join(settings["DATA_DIR"], "state.json")
@@ -82,15 +85,19 @@ class Node:
         # Telemetry
         if self.policy.should_send(now, snap["internalTemp"], snap["status"]):
             self.policy.mark_sent(now, snap["internalTemp"], snap["status"])
-            if self.link:
-                self.link.publish("telemetry", self.telemetry_message(snap))
+            if self.outbox:
+                self.outbox.add("telemetry", self.telemetry_message(snap), connected=self.link.connected)
+
+        # Send whatever is waiting in the outbox (and forget what the broker acknowledged)
+        if self.outbox:
+            self.outbox.pump(self.link)
 
         # LCD
         if now - self.last_page_change >= LCD_PAGE_S:
             self.lcd_page = (self.lcd_page + 1) % len(display.PAGES)
             self.last_page_change = now
         mqtt_ok = bool(self.link and self.link.connected)
-        wifi_ok = True  # Phase 2 reads the real Wi-Fi state
+        wifi_ok = self.wifi_fn() if self.wifi_fn else True
         self.lcd.show(display.line1(snap), display.line2(snap, self.lcd_page, wifi_ok, mqtt_ok))
 
         # Save the out-of-range total and excursions
@@ -106,8 +113,8 @@ class Node:
 
     def send_event(self, event):
         log.info("EVENT %s %s", event["type"], event["details"])
-        if self.link:
-            self.link.publish("event", event, keep_if_offline=True)  # events must never be lost
+        if self.outbox:
+            self.outbox.add("event", event)  # events are never thinned or dropped
 
     def acknowledge(self, by):
         event = self.engine.acknowledge(by=by)
@@ -123,8 +130,12 @@ class Node:
     def shutdown(self):
         self.save()
         self.outputs.all_off()
+        if self.outbox:
+            self.outbox.pump(self.link)   # last chance to hand over queued messages
         if self.link:
             self.link.stop()
+        if self.outbox:
+            self.outbox.close()
 
 
 # ---------------------------------------------------------------- console (mock mode)
@@ -181,21 +192,33 @@ def main(argv=None):
     settings = load_settings()
     clock = SystemClock()
 
-    if not settings["MOCK_HARDWARE"]:
-        sys.exit("Real hardware drivers are added in Phase 2. Set MOCK_HARDWARE=1 for now.")
-    from coldchain.mock import MockLcd, MockOutputs, MockSensors
-    sensors, outputs, lcd = MockSensors(clock), MockOutputs(), MockLcd()
+    wifi_fn = None
+    if settings["MOCK_HARDWARE"]:
+        from coldchain.mock import MockLcd, MockOutputs, MockSensors
+        sensors, outputs, lcd = MockSensors(clock), MockOutputs(), MockLcd()
+    else:
+        from coldchain.hardware import PiLcd, PiOutputs, PiSensors
+        from coldchain.sysfs import wifi_up
+        outputs = PiOutputs()              # first: puts the lock and buzzer pins in a safe OFF state
+        sensors = PiSensors()
+        lcd = PiLcd(int(os.environ.get("LCD_ADDRESS", "0x27"), 16))
+        wifi_fn = wifi_up
 
-    link = None
+    link = outbox = None
     if not args.no_mqtt:
         from coldchain.mqtt_link import MqttLink
+        from coldchain.outbox import Outbox
+        from coldchain.sysfs import boot_id
         link = MqttLink(
             settings["UNIT_ID"], os.environ.get("MQTT_HOST", "localhost"), int(os.environ.get("MQTT_PORT", 8883)),
             os.environ.get("MQTT_USERNAME", ""), os.environ.get("MQTT_PASSWORD", ""),
             use_tls=os.environ.get("MQTT_TLS", "1") == "1", ca_file=os.environ.get("MQTT_CA_FILE", ""),
         )
+        outbox = Outbox(os.path.join(settings["DATA_DIR"], "outbox.db"), clock, boot_id())
+        if outbox.count():
+            log.info("Outbox has %d messages from before the restart", outbox.count())
 
-    node = Node(settings, clock, sensors, outputs, lcd, link)
+    node = Node(settings, clock, sensors, outputs, lcd, link, outbox, wifi_fn)
     log.info("Node %s started: profile=%s mock=%s out-of-range total=%ds",
              settings["UNIT_ID"], settings["PROFILE"], settings["MOCK_HARDWARE"], node.engine.total_oor_s)
 
@@ -204,7 +227,7 @@ def main(argv=None):
 
     lines = queue.Queue()
     script = load_script(args.script) if args.script else None
-    if script is None:
+    if script is None and settings["MOCK_HARDWARE"]:
         threading.Thread(target=read_keyboard, args=(lines,), daemon=True).start()
         print("Type commands and press Enter (help for the list).")
     start = clock.monotonic()

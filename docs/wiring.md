@@ -70,7 +70,120 @@ solenoid, cathode to +5 V; GPIO 25 → 100 Ω → gate; 10 kΩ gate → GND. Loc
 Use IRLB8721 (TO-220, easy to solder) or AO3400 (SOT-23, PCB only). Not IRLZ44N, which is not fully
 on at 3.3 V gate drive. Solenoid current about 1 A: **VERIFY** by measuring with the lock energised.
 
-## Fritzing wiring list
+## Fritzing wiring list (design review)
 
-The full list (part, pin, wire colour, GPIO) for the breadboard view is added in Phase 2, so it is
-ready for the 20 Nov design review.
+This is the **reduced design we actually build on the breadboard**. Draw it in Fritzing's
+breadboard view from this table. Rails: put **3.3 V + GND** on the top rails and **5 V + GND** on
+the bottom rails. Join the two GND rails. Physical pin numbers are the Pi header pins.
+
+Wire colour code: red = 5 V, orange = 3.3 V, black = GND, then one colour per signal.
+
+Fritzing parts to use (names in the core library; **VERIFY** in your Fritzing version):
+Raspberry Pi 4 (or Raspberry Pi 3, which has the same 40-pin header), DS18B20 (temperature sensor),
+DHT22, reed switch, resistor, ceramic capacitor, NPN transistor, N-channel MOSFET (TO-220),
+diodes, piezo buzzer, red and green LED, LCD 16x2 (with a note "PCF8574 I2C backpack" if no I2C
+LCD part exists), "Logic Level Converter" (BSS138 bidirectional), 4x4 keypad (or an 8-pin header
+labelled R1–R4 C1–C4), solenoid, DC barrel jacks for the 12 V and 5 V adapters, fuse.
+
+### Power rails
+
+| From | To | Pi pin | Colour |
+|---|---|---|---|
+| Pi 3V3 | top + rail | 1 | orange |
+| Pi GND | top − rail | 6 | black |
+| Pi 5V | bottom + rail | 2 | red |
+| Pi GND | bottom − rail | 9 | black |
+| top − rail | bottom − rail | – | black |
+
+### Sensors
+
+| Part | Part pin | Connects to | Pi pin (GPIO) | Colour |
+|---|---|---|---|---|
+| DS18B20 | VDD (red lead) | 3.3 V rail | – | orange |
+| DS18B20 | GND (black lead) | GND rail | – | black |
+| DS18B20 | DQ (yellow lead, VERIFY) | Pi | 7 (GPIO 4) | yellow |
+| R1 4.7 kΩ | – | between DQ and 3.3 V rail | – | (component) |
+| DHT22 | VCC (pin 1) | 3.3 V rail | – | orange |
+| DHT22 | DATA (pin 2) | Pi | 11 (GPIO 17) | white |
+| DHT22 | NC (pin 3) | not connected | – | – |
+| DHT22 | GND (pin 4) | GND rail | – | black |
+| R2 10 kΩ | – | between DATA and 3.3 V rail (leave out if the module has one) | – | (component) |
+| Reed switch | lead 1 | Pi | 13 (GPIO 27) | blue |
+| Reed switch | lead 2 | GND rail | – | black |
+
+DHT22 pin numbers are for the bare 4-pin sensor (pin 1 on the left, grid facing you). A 3-pin module
+has its own order printed on it: VERIFY.
+
+### 12 V mains sense
+
+| Part | Part pin | Connects to | Pi pin (GPIO) | Colour |
+|---|---|---|---|---|
+| 12 V barrel jack | + | F1 fuse, then the "12 V node" row | – | red (label "12 V") |
+| 12 V barrel jack | − | GND rail (common ground) | – | black |
+| R3 10 kΩ | – | 12 V node → sense node | – | (component) |
+| R4 2.7 kΩ | – | sense node → GND rail | – | (component) |
+| C1 100 nF | – | sense node → GND rail | – | (component) |
+| R5 1 kΩ | – | sense node → GPIO row | – | (component) |
+| GPIO row | – | Pi | 15 (GPIO 22) | pink |
+| D1 1N5819 | anode / cathode | anode on the GPIO row, cathode to the 3.3 V rail (clamp) | – | (component) |
+
+Draw the Peltier and fan as a separate load on the 12 V node **after the fuse**, with a note
+"~5 A, not on the breadboard". Their current never flows through the breadboard or the Pi.
+
+### Outputs
+
+| Part | Part pin | Connects to | Pi pin (GPIO) | Colour |
+|---|---|---|---|---|
+| R6 1 kΩ | – | Pi → Q1 base | 12 (GPIO 18) | purple |
+| Q1 NPN (2N2222 / BC547, VERIFY pin order) | emitter | GND rail | – | black |
+| Q1 | collector | buzzer (−) | – | (short wire) |
+| Buzzer | (+) | 5 V rail | – | red |
+| D2 1N4148 | – | across the buzzer, cathode to 5 V | – | (component) |
+| R7 330 Ω | – | Pi → red LED anode | 16 (GPIO 23) | brown |
+| Red LED | cathode | GND rail | – | black |
+| R8 330 Ω | – | Pi → green LED anode | 18 (GPIO 24) | green |
+| Green LED | cathode | GND rail | – | black |
+
+### LCD through the level shifter
+
+| Part | Part pin | Connects to | Pi pin (GPIO) | Colour |
+|---|---|---|---|---|
+| Level shifter | LV | 3.3 V rail | – | orange |
+| Level shifter | HV | 5 V rail | – | red |
+| Level shifter | GND (both sides) | GND rail | – | black |
+| Level shifter | LV1 | Pi SDA | 3 (GPIO 2) | cyan |
+| Level shifter | LV2 | Pi SCL | 5 (GPIO 3) | grey |
+| Level shifter | HV1 | LCD backpack SDA | – | cyan |
+| Level shifter | HV2 | LCD backpack SCL | – | grey |
+| LCD backpack | VCC | 5 V rail | – | red |
+| LCD backpack | GND | GND rail | – | black |
+
+### Keypad (extension)
+
+| Keypad pin | Pi pin (GPIO) | Colour |
+|---|---|---|
+| R1, R2, R3, R4 | 29 (GPIO 5), 31 (GPIO 6), 33 (GPIO 13), 35 (GPIO 19) | yellow |
+| C1, C2, C3, C4 | 32 (GPIO 12), 36 (GPIO 16), 38 (GPIO 20), 40 (GPIO 21) | cyan |
+
+The ribbon order differs between keypads (VERIFY with `test_keypad`).
+
+### Solenoid lock (extension)
+
+| Part | Part pin | Connects to | Pi pin (GPIO) | Colour |
+|---|---|---|---|---|
+| 5 V 2 A barrel jack | + | solenoid (+) | – | red (label "5 V lock") |
+| 5 V 2 A barrel jack | − | GND rail (common ground) | – | black |
+| Solenoid | (−) | Q2 drain | – | (short wire) |
+| Q2 IRLB8721 | source | GND rail | – | black |
+| R9 100 Ω | – | Pi → Q2 gate | 22 (GPIO 25) | ochre |
+| R10 10 kΩ | – | Q2 gate → GND rail | – | (component) |
+| D3 1N4007 | – | across the solenoid, cathode (stripe) to the 5 V lock supply | – | (component) |
+
+Never connect the solenoid to the Pi's 5 V pins: the lock current comes from its own adapter only.
+
+### Parts list for the breadboard build
+
+R1 4.7 kΩ · R2 10 kΩ (if needed) · R3 10 kΩ · R4 2.7 kΩ · R5 1 kΩ · R6 1 kΩ · R7, R8 330 Ω ·
+R9 100 Ω · R10 10 kΩ · C1 100 nF · D1 1N5819 · D2 1N4148 · D3 1N4007 · Q1 2N2222 or BC547 ·
+Q2 IRLB8721 · F1 fuse just above the 12 V adapter rating (D14) · BSS138 level-shifter module ·
+two barrel jacks.

@@ -29,12 +29,19 @@ MAX_EXCURSION_HISTORY = 200  # closed excursions kept in the state file
 
 @dataclass
 class Reading:
-    """One set of raw sensor values. None means the read failed."""
+    """One set of raw sensor values. None means the read failed.
+
+    The main loop runs every 0.1 s but the DS18B20 gives a new sample about once a second and the
+    DHT22 every few seconds. internal_new / ambient_new say whether this reading carries a *new*
+    sample, so that "3 bad reads in a row" counts samples, not loop passes.
+    """
     internal_temp: Optional[float]
     ambient_temp: Optional[float]
     humidity: Optional[float]
     door_open: bool
     mains_present: bool
+    internal_new: bool = True
+    ambient_new: bool = True
 
 
 class Debouncer:
@@ -130,9 +137,11 @@ class AlarmEngine:
             self.excursion["outOfRangeSeconds"] += dt
         self.last_update = now
 
-        # 2. Sensors
-        self._check_internal(reading.internal_temp, now, events)
-        self._check_ambient(reading.ambient_temp, reading.humidity, events)
+        # 2. Sensors (only when they have produced a new sample)
+        if reading.internal_new:
+            self._check_internal(reading.internal_temp, now, events)
+        if reading.ambient_new:
+            self._check_ambient(reading.ambient_temp, reading.humidity, events)
 
         # 3. Door and power
         self._check_door(reading.door_open, now, events)

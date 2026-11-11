@@ -3,29 +3,8 @@ from coldchain.clock import FakeClock
 from coldchain.config import load_settings
 from coldchain.mock import MockLcd, MockOutputs, MockSensors
 from coldchain.node import Node
-
-
-class FakeLink:
-    """Records what the node publishes instead of sending it."""
-
-    def __init__(self):
-        self.connected = True
-        self.sent = []
-        self.inbox = []
-
-    def publish(self, subtopic, payload, keep_if_offline=False):
-        self.sent.append((subtopic, payload))
-        return True
-
-    def take_commands(self):
-        cmds, self.inbox = self.inbox, []
-        return cmds
-
-    def stop(self):
-        pass
-
-    def of(self, subtopic):
-        return [p for s, p in self.sent if s == subtopic]
+from coldchain.outbox import Outbox
+from tests.fakes import FakeLink
 
 
 def make_node(tmp_path, clock=None):
@@ -33,7 +12,8 @@ def make_node(tmp_path, clock=None):
     settings = load_settings({"PROFILE": "demo", "DATA_DIR": str(tmp_path)})
     sensors = MockSensors(clock, noise_c=0.0)
     link = FakeLink()
-    node = Node(settings, clock, sensors, MockOutputs(), MockLcd(), link)
+    outbox = Outbox(str(tmp_path / "outbox.db"), clock, "boot-1")
+    node = Node(settings, clock, sensors, MockOutputs(), MockLcd(), link, outbox)
     return node, clock, sensors, link
 
 
@@ -89,3 +69,20 @@ def test_state_file_is_written_as_soon_as_an_excursion_starts(tmp_path):
     run(node, clock, 0.2)                      # well before the 10 s periodic save
     state = json.loads((tmp_path / "state.json").read_text())
     assert state["openExcursion"]["direction"] == "HIGH"
+
+
+def test_wifi_outage_loses_no_events(tmp_path):
+    node, clock, sensors, link = make_node(tmp_path)
+    run(node, clock, 2)
+    link.go_offline()
+    sensors.apply("temp 9.5")
+    run(node, clock, 25)                       # alarm while offline
+    sensors.apply("door open")
+    run(node, clock, 20)
+    sensors.apply("door close")
+    run(node, clock, 255)                      # 5 minutes offline in total
+    assert [e["type"] for e in link.of("event")] == []
+    link.go_online()
+    run(node, clock, 2)
+    assert [e["type"] for e in link.of("event")] == ["OUT_OF_RANGE_HIGH", "DOOR_OPEN_TOO_LONG", "DOOR_CLOSED"]
+    assert node.outbox.count() == 0

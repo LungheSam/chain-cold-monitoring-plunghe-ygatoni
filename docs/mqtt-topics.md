@@ -73,8 +73,7 @@ When each event is sent:
 
 ## Offline queue on the node
 
-Phase 1 (now): events are kept in memory while offline and sent on reconnect; telemetry is dropped.
-Phase 2 replaces this with the SQLite queue below, which also survives a reboot.
+Implemented in `edge/coldchain/outbox.py`. A row is deleted only after the broker's PUBACK.
 
 - SQLite file `DATA_DIR/queue.db`, one row per message, sent in insertion order on reconnect.
 - **Events are never dropped.** Telemetry is thinned when the queue is large: keep at most one

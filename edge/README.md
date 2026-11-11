@@ -10,7 +10,13 @@ Python code for the Raspberry Pi 4. All alarm logic runs here, so the local alar
 | `coldchain/telemetry.py` | When to send telemetry (30 s / 0.2 °C / status change) |
 | `coldchain/display.py` | Text for the 16x2 LCD |
 | `coldchain/commands.py` | Commands from the back end (expiry, repeated IDs) |
-| `coldchain/mqtt_link.py` | MQTT over TLS, Last Will, command subscription |
+| `coldchain/mqtt_link.py` | MQTT over TLS, Last Will, command subscription, PUBACK tracking |
+| `coldchain/outbox.py` | SQLite offline queue: events never lost, telemetry thinned, re-timing after NTP sync |
+| `coldchain/sysfs.py` | DS18B20 and DHT22 readers (sysfs / IIO), Wi-Fi state, boot id |
+| `coldchain/hardware.py` | Real Pi drivers (gpiozero): reed, mains, LEDs, buzzer, LCD, lock held OFF |
+| `coldchain/keypad.py` | 4x4 keypad scanner (PIN logic in Phase 5) |
+| `systemd/coldchain-node.service` | Service file with the pin safety net (`ExecStopPost`) |
+| `tests/hw/` | One hardware test script per part, run on the Pi |
 | `coldchain/mock.py` | Fake sensors, LEDs, buzzer and LCD for `MOCK_HARDWARE=1` |
 | `coldchain/node.py` | Main loop that ties it all together |
 | `scenarios/demo.txt` | Scripted run: heat, ack, door, power cut, probe fault |
@@ -53,4 +59,5 @@ mosquitto_sub -h localhost -p 8883 --cafile ../broker/mosquitto/certs/ca.crt -u 
 
 ## Run on the Pi
 
-Real drivers, `SETUP.md` and the systemd service come in Phase 2.
+See [SETUP.md](SETUP.md): config.txt lines, install, the bring-up checklist (one part at a
+time, with `tests/hw/` scripts) and the systemd service.

@@ -1,0 +1,27 @@
+# systemd service for the cold chain edge node.
+# Install (see edge/SETUP.md): the placeholders __USER__ and __EDGE_DIR__ are filled in by sed.
+[Unit]
+Description=Cold chain monitor edge node
+# Start without waiting for the network: the local alarm must work offline.
+After=local-fs.target
+
+[Service]
+Type=simple
+User=__USER__
+SupplementaryGroups=gpio i2c
+WorkingDirectory=__EDGE_DIR__
+ExecStart=__EDGE_DIR__/.venv/bin/python -m coldchain.node
+Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
+RestartSec=5
+
+# Safety net (docs/decisions.md D8): whatever way the program ended (crash, kill, stop), put the
+# lock, buzzer and LED pins back to input with pull-down, so the solenoid and buzzer are OFF.
+# The "+" runs these lines as root. pinctrl comes with Raspberry Pi OS (VERIFY: `which pinctrl`).
+ExecStopPost=+/usr/bin/pinctrl set 25 ip pd
+ExecStopPost=+/usr/bin/pinctrl set 18 ip pd
+ExecStopPost=+/usr/bin/pinctrl set 23 ip pd
+ExecStopPost=+/usr/bin/pinctrl set 24 ip pd
+
+[Install]
+WantedBy=multi-user.target
