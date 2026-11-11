@@ -26,16 +26,35 @@ Unit ID: `cold-unit-01`. All payloads are UTF-8 JSON. `ts` is milliseconds since
 `type` is one of:
 
 `OUT_OF_RANGE_HIGH`, `OUT_OF_RANGE_LOW`, `BACK_IN_RANGE`, `DOOR_OPEN_TOO_LONG`, `DOOR_CLOSED`,
-`POWER_LOST`, `POWER_RESTORED`, `SENSOR_FAULT`, `ALARM_ACKNOWLEDGED`, `ACCESS_GRANTED`, `ACCESS_DENIED`.
+`POWER_LOST`, `POWER_RESTORED`, `SENSOR_FAULT`, `SENSOR_RESTORED`, `ALARM_ACKNOWLEDGED`,
+`ACCESS_GRANTED`, `ACCESS_DENIED`.
+
+`SENSOR_RESTORED` was added to the original list, so the back end knows when a sensor fault has
+cleared (needed for the "problem cleared" SMS).
+
+When each event is sent:
+
+- `OUT_OF_RANGE_*`: when the alarm is confirmed (after `TEMP_CONFIRM_S`).
+- `BACK_IN_RANGE`: when **any** excursion closes, including a short blip that never alarmed
+  (`confirmed: false`). The back end stores every excursion, but sends the "cleared" SMS only for
+  confirmed ones.
+- `DOOR_CLOSED`: after **every** door opening, with `openSeconds` and `alarmed`. This gives the
+  dashboard the number and length of door openings. The "cleared" SMS is only for `alarmed: true`.
+- `POWER_LOST` / `POWER_RESTORED`: after `POWER_CONFIRM_S`. `durationS` is measured from the first
+  LOW sample to the first HIGH sample.
 
 - `id` is a UUID made on the node, so the back end can drop duplicates (QoS 1 can deliver twice, and
   the offline queue can resend).
-- `details` examples:
-  - `OUT_OF_RANGE_HIGH`: `{temp: 9.4, limit: 8.0, since: <ts left range>, outOfRangeSeconds}`
-  - `BACK_IN_RANGE`: `{durationS, minTemp, maxTemp, excursionId}`
-  - `POWER_RESTORED`: `{durationS}`
-  - `SENSOR_FAULT`: `{sensor: "ds18b20" | "dht22", reason: "missing" | "85C" | "read_error"}`
-  - `ACCESS_GRANTED`: `{user, method: "keypad" | "qr"}`
+- `details` (as implemented in `edge/coldchain/alarm.py`):
+  - `OUT_OF_RANGE_HIGH|LOW`: `{temp, limit, since (ms, when it left the range), excursionId, outOfRangeSeconds}`
+  - `BACK_IN_RANGE`: the full excursion record `{excursionId, id, direction, start, end, durationS,
+    outOfRangeSeconds, offlineGapS, offlineGapUnknown, minTemp, maxTemp, confirmed}`
+  - `DOOR_OPEN_TOO_LONG`: `{openSeconds, limitS}`; `DOOR_CLOSED`: `{openSeconds, alarmed}`
+  - `POWER_LOST`: `{}`; `POWER_RESTORED`: `{durationS}`
+  - `SENSOR_FAULT`: `{sensor: "ds18b20" | "dht22", reason: "read_error" | "85C" | "-127C"}`;
+    `SENSOR_RESTORED`: `{sensor}`
+  - `ALARM_ACKNOWLEDGED`: `{by, alarms: ["TEMP_HIGH", "DOOR_OPEN", ...]}`
+  - `ACCESS_GRANTED` (Phase 5): `{user, method: "keypad" | "qr"}`
 
 ## Commands
 
@@ -53,6 +72,9 @@ Unit ID: `cold-unit-01`. All payloads are UTF-8 JSON. `ts` is milliseconds since
   broker only fires the LWT after the keep-alive (60 s × 1.5) runs out.
 
 ## Offline queue on the node
+
+Phase 1 (now): events are kept in memory while offline and sent on reconnect; telemetry is dropped.
+Phase 2 replaces this with the SQLite queue below, which also survives a reboot.
 
 - SQLite file `DATA_DIR/queue.db`, one row per message, sent in insertion order on reconnect.
 - **Events are never dropped.** Telemetry is thinned when the queue is large: keep at most one

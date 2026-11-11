@@ -1,0 +1,15 @@
+# Open Day style scenario for the mock node (PROFILE=demo: confirm 20 s, door 15 s, power 3 s).
+# Run from edge/:  python -m coldchain.node --script scenarios/demo.txt
+# Format: <seconds since start> <command>
+
+5    temp 9.5        # probe in a warm hand: out of range at once
+30   ack             # alarm confirmed at ~25 s; silence the buzzer
+40   temp 5.0        # back in range -> BACK_IN_RANGE with duration, min, max
+45   door open
+65   door close      # DOOR_OPEN_TOO_LONG at ~60 s, then DOOR_CLOSED
+70   power off
+80   power on        # POWER_LOST at ~73 s, POWER_RESTORED at ~83 s
+88   probe 85        # DS18B20 power-on value -> SENSOR_FAULT (alarm)
+92   probe ok        # SENSOR_RESTORED
+95   status
+96   quit

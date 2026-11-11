@@ -166,8 +166,11 @@ in progress by then. Proposed order:
 
 The Linux `w1_therm` driver reports a failed read as an I/O error (or a CRC failure), not
 −127 °C. −127 comes from the Arduino library. We treat as `SENSOR_FAULT`: probe missing, read error,
-exactly 85.0 °C (power-on reset value) and −127 °C (in case). The DHT22 is a fault after 5 failed
-reads in a row (the kernel driver often returns `EIO`, so single failures are normal).
+exactly 85.0 °C (power-on reset value) and −127 °C (in case), after **3 bad reads in a row**, so
+one glitch does not raise an alarm. A bad value is never counted as out-of-range time. The DHT22
+is a fault after 5 failed reads in a row (the kernel driver often returns `EIO`, so single
+failures are normal). Phase 2 must feed the engine one reading per *new* sensor sample, so that
+"3 in a row" means 3 samples, not 3 passes of the 0.1 s main loop.
 
 ## Things to measure (VERIFY list)
 
