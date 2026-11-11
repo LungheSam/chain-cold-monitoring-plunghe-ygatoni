@@ -1,0 +1,15 @@
+# Keypad and lock scenario for the mock node (needs KEYPAD_INSTALLED=1, LOCK_INSTALLED=1 and a PIN):
+#   python -m coldchain.pins add Demo          (type 1234 twice)
+#   python -m coldchain.node --no-mqtt --script scenarios/keypad.txt
+# Format: <seconds since start> <command>. Comments at the end of a line need " # " with spaces.
+1    key 1234#       # right PIN: LOCK OPEN for 5 s, ACCESS_GRANTED
+3    status          # LCD line 2: DOOR UNLOCKED
+12   key 1111#       # wrong PIN 1/3 -> ACCESS_DENIED
+13   key 2222#       # wrong PIN 2/3
+14   key 3333#       # wrong PIN 3/3 -> keypad locked for 60 s
+15   status          # LCD line 2: KEYPAD LOCK 59s
+16   key 1234#       # ignored during the lockout
+17   temp 9.5        # warm probe: alarm confirmed after 20 s
+80   key #1234#      # after the lockout: '#' + PIN acknowledges the alarm (door stays locked)
+81   status
+82   quit

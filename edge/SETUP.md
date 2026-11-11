@@ -89,6 +89,7 @@ Run tests from `~/coldchain/edge` as `.venv/bin/python -m tests.hw.<name>`.
 | 7 | LCD + level shifter | check the backpack pull-ups (`docs/wiring.md`); `i2cdetect -y 1` shows 27 | `test_lcd` (or `test_lcd 3f`) | text and a counter; adjust contrast if blank |
 | 8 | Keypad | – | `test_keypad` | all 16 keys print the right character |
 | 9 | Lock + MOSFET (last) | diode across the solenoid, own 5 V 2 A adapter, common GND | `test_lock` | one click; current about 1 A (VERIFY with a meter) |
+| 9b | PINs | `KEYPAD_INSTALLED=1`, `LOCK_INSTALLED=1` in `.env` | `.venv/bin/python -m coldchain.pins add <name>` for each person, then `python -m coldchain.pins time` | one check takes well under 100 ms (VERIFY); `1234#` on the keypad clicks the lock |
 | 10 | Everything, node in the foreground | `MOCK_HARDWARE=0` in `.env` | `.venv/bin/python -m coldchain.node --no-mqtt` | LCD shows `IN  xx.xC  OK`, green LED on; warm the probe above 8 °C → after the confirm delay red LED + buzzer |
 | 11 | With MQTT | broker running, `.env` filled in | `.venv/bin/python -m coldchain.node` | log says `MQTT connected`; the laptop's `mosquitto_sub` shows telemetry |
 | 12 | systemd service | see section 6 | reboot the Pi | node starts by itself, `journalctl` shows it |
@@ -130,6 +131,7 @@ journalctl -u coldchain-node -n 5                # the service restarts after 5 
 | `edge/.env` | settings and MQTT password (not in git) |
 | `edge/data/state.json` | out-of-range total, open excursion, excursion history, thresholds |
 | `edge/data/outbox.db` | SQLite queue of events/telemetry not yet acknowledged by the broker |
+| `edge/pins.json` | keypad PINs as salted hashes (not in git); keep a copy only on the Pi |
 
 To start the out-of-range total from zero (for example before the demo):
 `sudo systemctl stop coldchain-node && rm ~/coldchain/edge/data/state.json && sudo systemctl start coldchain-node`.

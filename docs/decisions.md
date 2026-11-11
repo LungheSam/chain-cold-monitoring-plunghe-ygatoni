@@ -187,5 +187,6 @@ failures are normal). Phase 2 must feed the engine one reading per *new* sensor 
 - [ ] 12 V adapter voltage with no load and with the Peltier running, current rating
 - [ ] UPS board model, size, which pins/I2C addresses it uses
 - [ ] Keypad ribbon pin order (rows/columns), flat-cable width
+- [ ] Time of one PIN check on the Pi (`python -m coldchain.pins time`, 17 ms on the laptop; should stay under ~100 ms)
 - [ ] DHT22 module: has its own pull-up?
 - [ ] Cable diameters (DS18B20 probe, reed) for the PG7 glands (PG7 fits about 3–6.5 mm cable: VERIFY with the gland's datasheet)

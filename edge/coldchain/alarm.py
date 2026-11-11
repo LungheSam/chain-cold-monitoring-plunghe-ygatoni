@@ -484,10 +484,15 @@ class AlarmEngine:
         return int(self.clock.time() * 1000)
 
     def _event(self, event_type, details):
-        return {
-            "id": str(uuid.uuid4()),
-            "ts": self._wall_ms(),
-            "type": event_type,
-            "details": copy.deepcopy(details),
-            "timeSynced": self.clock.synced(),
-        }
+        return make_event(self.clock, event_type, details)
+
+
+def make_event(clock, event_type, details):
+    """An event message (docs/mqtt-topics.md). Also used by the keypad and lock code."""
+    return {
+        "id": str(uuid.uuid4()),
+        "ts": int(clock.time() * 1000),
+        "type": event_type,
+        "details": copy.deepcopy(details),
+        "timeSynced": clock.synced(),
+    }

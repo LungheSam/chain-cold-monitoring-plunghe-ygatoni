@@ -91,7 +91,7 @@ class PiOutputs:
     """LEDs and buzzer. Blinking is timed from the main loop (called every 0.1 s), no extra threads."""
 
     def __init__(self):
-        # The lock is claimed here only to hold it OFF (Phase 5 adds the unlock logic).
+        # Lock first, and OFF: the solenoid must never open at start-up (D8). access.py times the pulses.
         self.lock_pin = DigitalOutputDevice(PIN_LOCK, initial_value=False)
         self.red = LED(PIN_RED)
         self.green = LED(PIN_GREEN)
@@ -111,6 +111,9 @@ class PiOutputs:
         self.red.value = red
         self.green.value = green
         self.buzzer.value = 0.5 if buzz else 0
+
+    def set_lock(self, on):
+        self.lock_pin.value = bool(on)
 
     def all_off(self):
         for device in (self.buzzer, self.red, self.green, self.lock_pin):

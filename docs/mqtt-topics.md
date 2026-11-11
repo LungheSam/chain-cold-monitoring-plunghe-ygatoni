@@ -54,7 +54,13 @@ When each event is sent:
   - `SENSOR_FAULT`: `{sensor: "ds18b20" | "dht22", reason: "read_error" | "85C" | "-127C"}`;
     `SENSOR_RESTORED`: `{sensor}`
   - `ALARM_ACKNOWLEDGED`: `{by, alarms: ["TEMP_HIGH", "DOOR_OPEN", ...]}`
-  - `ACCESS_GRANTED` (Phase 5): `{user, method: "keypad" | "qr"}`
+  - `ACCESS_GRANTED`: `{user, method: "keypad" | "qr", seconds}` (user = PIN owner's name, or the
+    supervisor's email for a QR unlock)
+  - `ACCESS_DENIED`: `{method: "keypad", reason: "wrong PIN", purpose: "unlock" | "acknowledge",
+    attempt: 1-3, lockedOutS?: 60}` (`lockedOutS` only on the third wrong PIN in a row)
+  - `unlockDoor` params from the back end: `{by, method: "qr", seconds?}`. The node refuses with
+    `"lock not installed"` (`LOCK_INSTALLED=0`), `"seconds must be 1 to 5"` or
+    `"lock resting, try again in N s"`.
 
 ## Commands
 

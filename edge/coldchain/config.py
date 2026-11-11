@@ -39,6 +39,10 @@ def load_settings(env=None):
         "TELEMETRY_PERIOD_S": TELEMETRY_PERIOD_S,
         "TELEMETRY_DELTA_C": TELEMETRY_DELTA_C,
         "DATA_DIR": env.get("DATA_DIR", "./data"),
+        # Extension (Phase 5): keypad and solenoid lock. Off unless fitted.
+        "KEYPAD_INSTALLED": env.get("KEYPAD_INSTALLED", "0") == "1",
+        "LOCK_INSTALLED": env.get("LOCK_INSTALLED", "0") == "1",
+        "PINS_FILE": env.get("PINS_FILE", "./pins.json"),
     }
     settings.update(PROFILES[profile])
     return settings

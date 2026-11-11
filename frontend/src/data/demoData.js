@@ -31,6 +31,8 @@ export function createDemoData() {
   const notify = (name, value) => listeners[name].forEach((cb) => cb(value));
   const newestFirst = (list) => [...list].sort((a, b) => (b.ts ?? b.start) - (a.ts ?? a.start));
   let counter = 0;
+  let lockRestUntil = 0;
+  const demoUser = () => JSON.parse(sessionStorage.getItem('demoUser') || '{}').email || 'demo user';
   const addEvent = (type, details) => {
     counter += 1;
     events.push({ id: `demo-live-${counter}`, ts: Date.now(), type, details });
@@ -111,15 +113,26 @@ export function createDemoData() {
     getEvents: async (unitId, from, to) => inRange(events, from, to),
     subscribeEvents: (unitId, max, cb) => subscribe('events', () => newestFirst(events).slice(0, max), (list) => cb(list.slice(0, max))),
     subscribeExcursions: (unitId, cb) => subscribe('excursions', () => newestFirst(excursions), cb),
-    subscribeAccess: (unitId, max, cb) => subscribe('access', () => newestFirst(access).slice(0, max), cb),
+    subscribeAccess: (unitId, max, cb) => subscribe('access', () => newestFirst(access).slice(0, max), (list) => cb(list.slice(0, max))),
     api: {
       async action(unitId, name, body) {
         if (name === 'acknowledgeAlarm') {
           if (!unit.activeAlarms?.length) return fail(422, 'no active alarm');
-          addEvent('ALARM_ACKNOWLEDGED', { by: 'demo user', alarms: unit.activeAlarms });
+          addEvent('ALARM_ACKNOWLEDGED', { by: demoUser(), alarms: unit.activeAlarms });
           return ok({ ok: true });
         }
-        if (name === 'unlockDoor') return fail(422, 'lock not installed');
+        if (name === 'unlockDoor') {
+          // Same rules as the node: 5 s open, then 5 s rest before the next pulse
+          const waitS = Math.ceil((lockRestUntil - Date.now()) / 1000);
+          if (waitS > 0) return fail(422, `lock resting, try again in ${waitS} s`);
+          const seconds = body?.seconds ?? 5;
+          lockRestUntil = Date.now() + (seconds + 5) * 1000;
+          const details = { user: demoUser(), method: 'qr', seconds };
+          addEvent('ACCESS_GRANTED', details);
+          access.push({ id: `demo-access-${Date.now()}`, ts: Date.now(), result: 'GRANTED', method: 'qr', user: details.user, details });
+          notify('access', newestFirst(access));
+          return ok({ ok: true });
+        }
         if (name === 'setThresholds') return this.putThresholds(unitId, body);
         return fail(404, 'unknown action');
       },

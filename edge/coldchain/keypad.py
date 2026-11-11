@@ -6,8 +6,11 @@ which column reads LOW. No diodes are needed as long as only one key is pressed 
 Rows R1-R4: GPIO 5, 6, 13, 19. Columns C1-C4: GPIO 12, 16, 20, 21.
 The order of the 8 ribbon wires differs between keypads: VERIFY with tests/hw/test_keypad.py
 (press each key and check the right character appears; if not, swap entries in ROW_PINS/COL_PINS).
-Phase 5 adds the PIN entry on top of this.
+A background thread scans every 20 ms; a key counts once it is seen in two scans in a row (debounce).
+The PIN logic is in access.py.
 """
+import queue
+import threading
 import time
 
 ROW_PINS = (5, 6, 13, 19)
@@ -20,12 +23,40 @@ KEYS = (
 )
 
 
+SCAN_EVERY_S = 0.02
+
+
 class Keypad:
-    def __init__(self):
+    def __init__(self, start_thread=False):
         from gpiozero import Button, DigitalOutputDevice
         self.rows = [DigitalOutputDevice(pin, initial_value=True) for pin in ROW_PINS]  # idle HIGH
         self.cols = [Button(pin, pull_up=True) for pin in COL_PINS]
         self._last = None
+        self.keys = queue.Queue()
+        self._running = False
+        if start_thread:
+            self._running = True
+            threading.Thread(target=self._scan_loop, daemon=True).start()
+
+    def _scan_loop(self):
+        """Background thread: put each new key press in the queue."""
+        previous = None     # key seen in the last scan
+        held = None         # key already reported (not reported again until released)
+        while self._running:
+            key = self.scan()
+            if key == previous and key != held:   # same key in two scans in a row = real press
+                held = key
+                if key is not None:
+                    self.keys.put(key)
+            previous = key
+            time.sleep(SCAN_EVERY_S)
+
+    def next_key(self):
+        """For the node: the next key from the thread, or None."""
+        try:
+            return self.keys.get_nowait()
+        except queue.Empty:
+            return None
 
     def scan(self):
         """Return the key held down right now, or None."""
@@ -47,5 +78,7 @@ class Keypad:
         return new
 
     def close(self):
+        self._running = False
+        time.sleep(2 * SCAN_EVERY_S)
         for device in self.rows + self.cols:
             device.close()

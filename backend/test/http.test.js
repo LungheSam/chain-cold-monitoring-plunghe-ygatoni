@@ -76,6 +76,24 @@ test('node refuses -> 422 with its error; no answer -> 504; unit offline -> 409'
   assert.equal(res.status, 409);
 }, { timeoutMs: 100 }));
 
+test('unlockDoor from the QR page: user and method come from the token, not the body', () => withServer(async (h, url) => {
+  autoReply(h);
+  const unlock = (headers, body) => fetch(`${url}/things/${UNIT}/actions/unlockDoor`, { method: 'POST', headers, body });
+  assert.equal((await unlock(VIEW, '{}')).status, 403);                    // viewers cannot open the door
+  assert.equal((await unlock(SUP, '{"by": "someone-else"}')).status, 400); // no fake names
+  const res = await unlock(SUP, '{"seconds": 3}');
+  assert.equal(res.status, 200);
+  assert.deepEqual(h.published.at(-1).cmd.params, { seconds: 3, by: 'sup@example.org', method: 'qr' });
+
+  // The node then reports the unlock; it lands in the access log with the user
+  const ev = event('ACCESS_GRANTED', { user: 'sup@example.org', method: 'qr', seconds: 3 });
+  await h.send('event', ev);
+  const entry = h.store.db.access.get(`${UNIT}/${ev.id}`);
+  assert.equal(entry.result, 'GRANTED');
+  assert.equal(entry.method, 'qr');
+  assert.equal(entry.user, 'sup@example.org');
+}));
+
 test('thresholds: validated, written with PUT, then readable', () => withServer(async (h, url) => {
   autoReply(h);
   const put = (body) => fetch(`${url}/things/${UNIT}/properties/thresholds`, { method: 'PUT', headers: SUP, body: JSON.stringify(body) });

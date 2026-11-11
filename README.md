@@ -89,7 +89,7 @@ With Firebase and deployment: [frontend/README.md](frontend/README.md).
 | 2 | Real edge drivers, bring-up, Fritzing wiring list | done (not yet run on the Pi) |
 | 3 | Back end (MQTT, Firestore, WoT, SMS, auth) | done (Firestore not yet run against a real project) |
 | 4 | Dashboard + seed data | done (demo mode checked in a browser; not yet run against Firebase) |
-| 5 | Keypad, lock, QR unlock | |
+| 5 | Keypad, lock, QR unlock | done (mock keypad and lock; not yet on the Pi) |
 | 6 | FreeCAD enclosure | |
 | 7 | KiCad carrier PCB | |
 | 8 | End-to-end tests and demo script | |

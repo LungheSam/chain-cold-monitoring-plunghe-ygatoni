@@ -14,7 +14,7 @@
 //   day 4 19:00  power cut 25 min            -> no excursion
 //   day 5 02:00  thermostat fault 40 min     -> excursion LOW (freezing risk)
 //   day 6 11:00  door open 4 min             -> door alarm only (temperature stays in range)
-//   two ACCESS_DENIED (wrong PIN) during the week
+//   wrong PINs twice during the week: once 1 attempt, once 3 in a row (keypad locked 60 s)
 // Alarm rules = the node's "real" profile: confirm 300 s, door limit 120 s, power confirm 5 s.
 import { KIGALI_OFFSET_MS } from '../../src/time.js';
 
@@ -79,10 +79,11 @@ export function generateWeek({ end, days = 7, seed = 42 }) {
   for (const d of doorList) {
     if (d.open < start || d.open > endMinute) continue;
     const closed = d.open + d.seconds * 1000;
-    event(d.open - 5000, 'ACCESS_GRANTED', { user: USERS[Math.floor(rand() * USERS.length)], method: 'keypad' });
+    const user = USERS[Math.floor(rand() * USERS.length)];
+    event(d.open - 5000, 'ACCESS_GRANTED', { user, method: 'keypad', seconds: 5 });
     if (d.seconds > THRESHOLDS.doorLimitS) {
       event(d.open + THRESHOLDS.doorLimitS * 1000, 'DOOR_OPEN_TOO_LONG', { openSeconds: THRESHOLDS.doorLimitS, limitS: THRESHOLDS.doorLimitS });
-      event(d.open + THRESHOLDS.doorLimitS * 1000 + 40000, 'ALARM_ACKNOWLEDGED', { by: 'keypad', alarms: ['DOOR_OPEN'] });
+      event(d.open + THRESHOLDS.doorLimitS * 1000 + 40000, 'ALARM_ACKNOWLEDGED', { by: user, alarms: ['DOOR_OPEN'] });
     }
     if (closed <= endMinute) event(closed, 'DOOR_CLOSED', { openSeconds: d.seconds, alarmed: d.seconds > THRESHOLDS.doorLimitS });
   }
@@ -90,7 +91,16 @@ export function generateWeek({ end, days = 7, seed = 42 }) {
     event(p.from + 5000, 'POWER_LOST', {});
     event(p.to + 5000, 'POWER_RESTORED', { durationS: (p.to - p.from) / 1000 });
   }
-  for (const ts of denied) event(ts, 'ACCESS_DENIED', { user: null, method: 'keypad', reason: 'wrong PIN x3' });
+  // Same details as the node (coldchain/access.py): the first time one wrong PIN, the second time
+  // three in a row, which locks the keypad for 60 s
+  denied.forEach((ts, i) => {
+    const attempts = i === 0 ? 1 : 3;
+    for (let a = 1; a <= attempts; a += 1) {
+      const details = { method: 'keypad', reason: 'wrong PIN', purpose: 'unlock', attempt: a };
+      if (a === 3) details.lockedOutS = 60;
+      event(ts + (a - 1) * 8000, 'ACCESS_DENIED', details);
+    }
+  });
 
   // Minute by minute: temperature, excursions and telemetry
   let offset = 0;

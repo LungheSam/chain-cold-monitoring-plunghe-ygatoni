@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useData, useSubscription } from '../context.jsx';
 import { UNIT_ID } from '../config.js';
-import { eventDetails, eventLabel, formatDateTime } from '../lib/format.js';
+import { accessDetails, eventDetails, eventLabel, formatDateTime } from '../lib/format.js';
 
 const GROUPS = {
   all: null,
@@ -53,16 +53,17 @@ export default function EventsLog() {
       <h2>Access log</h2>
       <div className="table-wrap">
         <table>
-          <thead><tr><th>Time</th><th>Result</th><th>Method</th><th>Who</th></tr></thead>
+          <thead><tr><th>Time</th><th>Result</th><th>Method</th><th>Who</th><th>Details</th></tr></thead>
           <tbody>
-            {!access && <tr><td colSpan="4" className="muted">Loading…</td></tr>}
-            {access?.length === 0 && <tr><td colSpan="4" className="muted">No door unlocks yet.</td></tr>}
+            {!access && <tr><td colSpan="5" className="muted">Loading…</td></tr>}
+            {access?.length === 0 && <tr><td colSpan="5" className="muted">No door unlocks yet.</td></tr>}
             {(access || []).map((a) => (
               <tr key={a.id}>
                 <td>{formatDateTime(a.ts)}</td>
                 <td><span className={`pill ${a.result === 'GRANTED' ? 'ok' : 'alarm'}`}>{a.result.toLowerCase()}</span></td>
                 <td>{a.method === 'qr' ? 'QR page' : a.method}</td>
                 <td>{a.user || <span className="muted">–</span>}</td>
+                <td className="wrap">{a.details?.reason ? accessDetails({ ...a.details, method: null, user: null }) : ''}</td>
               </tr>
             ))}
           </tbody>

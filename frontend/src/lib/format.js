@@ -63,8 +63,19 @@ export function eventDetails(e) {
       return `by ${d.by} (${(d.alarms || []).join(', ')})`;
     case 'ACCESS_GRANTED':
     case 'ACCESS_DENIED':
-      return `${d.method}${d.user ? `, ${d.user}` : ''}${d.reason ? `, ${d.reason}` : ''}`;
+      return accessDetails(d);
     default:
       return '';
   }
+}
+
+// "QR page, sup@example.org, open 5 s" or "keypad, wrong PIN (3/3), keypad locked 60 s"
+export function accessDetails(d = {}) {
+  const parts = [d.method === 'qr' ? 'QR page' : d.method];
+  if (d.user) parts.push(d.user);
+  if (d.seconds) parts.push(`open ${d.seconds} s`);
+  if (d.reason) parts.push(d.attempt ? `${d.reason} (${d.attempt}/3)` : d.reason);
+  if (d.purpose === 'acknowledge') parts.push('to acknowledge');
+  if (d.lockedOutS) parts.push(`keypad locked ${d.lockedOutS} s`);
+  return parts.filter(Boolean).join(', ');
 }

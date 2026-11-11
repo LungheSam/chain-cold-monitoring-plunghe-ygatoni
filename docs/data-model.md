@@ -54,7 +54,8 @@ causeGuess: "door" | "power" | "unknown"     // door open or power lost overlapp
 ### `units/{unitId}/access/{eventId}`
 
 ```
-ts, result: "GRANTED" | "DENIED", method: "keypad" | "qr", user (display name or uid), details
+ts, result: "GRANTED" | "DENIED", method: "keypad" | "qr", user (PIN owner's name or supervisor email; null for a wrong PIN),
+details (the event details: seconds, or reason / attempt / lockedOutS)
 ```
 
 ### `users/{uid}`

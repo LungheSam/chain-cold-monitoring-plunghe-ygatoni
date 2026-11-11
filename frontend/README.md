@@ -12,8 +12,13 @@ actions (acknowledge, thresholds) and the SMS contacts. Light theme, works on a 
 | Excursions | Table with start, end, duration, min, max, likely cause; CSV export |
 | Events | All events with a type filter, and the access log |
 | Settings | Supervisors: thresholds and delays, SMS contacts |
+| Door QR | Supervisors: printable QR label for the fridge, pointing to `/unlock/<unit>` |
+| `/unlock/:unitId` | Phone page opened by the QR code: sign in, unit status, big **Unlock door** button (supervisors), last 5 accesses |
 
-The QR unlock page `/unlock/:unitId` and the QR code generator come in Phase 5.
+The QR code is only a link and holds no secret. Unlocking needs a signed-in supervisor (the back end
+checks the Firebase token and role), and the node logs every unlock with the user's email. Viewers
+(for example nurses) open the fridge with their keypad PIN. Print the label from the deployed
+dashboard, not from localhost, so the code points to the Firebase Hosting address.
 
 ## Run
 

@@ -9,6 +9,8 @@ import Analytics from './pages/Analytics.jsx';
 import Excursions from './pages/Excursions.jsx';
 import EventsLog from './pages/EventsLog.jsx';
 import Settings from './pages/Settings.jsx';
+import Unlock from './pages/Unlock.jsx';
+import DoorQr from './pages/DoorQr.jsx';
 
 function RequireAuth({ children }) {
   const { user, role } = useData();
@@ -48,7 +50,7 @@ function Layout({ children }) {
     ['/', 'Overview'], ['/history', 'History'], ['/analytics', 'Analytics'],
     ['/excursions', 'Excursions'], ['/events', 'Events'],
   ];
-  if (role === 'supervisor') links.push(['/settings', 'Settings']);
+  if (role === 'supervisor') links.push(['/door-qr', 'Door QR'], ['/settings', 'Settings']);
   return (
     <>
       <DemoBanner />
@@ -81,6 +83,9 @@ export default function App() {
       <Route path="/excursions" element={page(<Excursions />)} />
       <Route path="/events" element={page(<EventsLog />)} />
       <Route path="/settings" element={page(<Settings />)} />
+      <Route path="/door-qr" element={page(<DoorQr />)} />
+      {/* Opened from the QR code on the fridge: phone layout, no menu */}
+      <Route path="/unlock/:unitId" element={<RequireAuth><DemoBanner /><Unlock /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

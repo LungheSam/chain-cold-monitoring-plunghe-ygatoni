@@ -109,8 +109,27 @@ class MockOutputs:
             log.info("OUTPUTS red=%s green=%s buzzer=%s",
                      outputs["red"], outputs["green"], "ON" if outputs["buzzer"] else "off")
 
+    def set_lock(self, on):
+        log.info("LOCK %s", "OPEN (energised)" if on else "closed")
+
     def all_off(self):
         self.state = None
+
+
+class MockKeypad:
+    """Keys typed on the console: `key 1234#` (see coldchain/access.py)."""
+
+    def __init__(self):
+        self.keys = []
+
+    def press(self, text):
+        self.keys += [k for k in text.upper() if k in "0123456789ABCD*#"]
+
+    def next_key(self):
+        return self.keys.pop(0) if self.keys else None
+
+    def close(self):
+        pass
 
 
 class MockLcd:

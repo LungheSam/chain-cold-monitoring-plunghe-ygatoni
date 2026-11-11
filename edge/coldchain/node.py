@@ -20,10 +20,12 @@ import time
 from dotenv import load_dotenv
 
 from coldchain import display
+from coldchain.access import AccessController, LockControl
 from coldchain.alarm import AlarmEngine
 from coldchain.clock import SystemClock
 from coldchain.commands import CommandHandler
 from coldchain.config import load_settings
+from coldchain.pins import PinStore
 from coldchain.store import load_json, save_json_atomic
 from coldchain.telemetry import TelemetryPolicy
 
@@ -35,7 +37,8 @@ LCD_PAGE_S = 3        # line 2 of the LCD rotates every 3 s
 
 
 class Node:
-    def __init__(self, settings, clock, sensors, outputs, lcd, link=None, outbox=None, wifi_fn=None):
+    def __init__(self, settings, clock, sensors, outputs, lcd, link=None, outbox=None, wifi_fn=None,
+                 keypad=None, pins=None):
         self.settings = settings
         self.clock = clock
         self.sensors = sensors
@@ -44,11 +47,19 @@ class Node:
         self.link = link
         self.outbox = outbox          # SQLite queue; None when running without MQTT
         self.wifi_fn = wifi_fn        # returns True if Wi-Fi is up; None on a laptop
+        self.keypad = keypad          # None if no keypad is fitted
 
         self.engine = AlarmEngine(settings, clock)
         self.state_path = os.path.join(settings["DATA_DIR"], "state.json")
         self.engine.load_state(load_json(self.state_path))
-        self.commands = CommandHandler(self.engine, clock)
+        # Door access (extension): the lock pulse timer, keypad PINs and QR unlocks
+        self.lock = LockControl(clock, outputs.set_lock) if settings["LOCK_INSTALLED"] else None
+        self.access = AccessController(clock, pins or PinStore(settings["PINS_FILE"]), self.lock, self.engine)
+        if keypad and not self.access.pins.users:
+            log.warning("No PINs in %s: the keypad will answer NO PINS SET (python -m coldchain.pins add <name>)",
+                        settings["PINS_FILE"])
+        unlock_fn = self.access.remote_unlock if self.lock else None   # None -> "lock not installed"
+        self.commands = CommandHandler(self.engine, clock, unlock_fn)
         self.policy = TelemetryPolicy(settings["TELEMETRY_PERIOD_S"], settings["TELEMETRY_DELTA_C"])
 
         now = clock.monotonic()
@@ -61,6 +72,14 @@ class Node:
         """One pass of the main loop."""
         now = self.clock.monotonic()
         events = self.engine.update(self.sensors.read())
+
+        # Keypad: PIN entry, unlock, acknowledge
+        if self.keypad:
+            key = self.keypad.next_key()
+            while key is not None:
+                events += self.access.key(key)
+                key = self.keypad.next_key()
+        self.access.update()          # closes the lock when its 5 s are up
 
         # Commands from the back end
         if self.link:
@@ -98,7 +117,9 @@ class Node:
             self.last_page_change = now
         mqtt_ok = bool(self.link and self.link.connected)
         wifi_ok = self.wifi_fn() if self.wifi_fn else True
-        self.lcd.show(display.line1(snap), display.line2(snap, self.lcd_page, wifi_ok, mqtt_ok))
+        access_text = self.access.lcd_line2()   # PIN entry and results take over line 2
+        line2 = display.fit(access_text) if access_text else display.line2(snap, self.lcd_page, wifi_ok, mqtt_ok)
+        self.lcd.show(display.line1(snap), line2)
 
         # Save the out-of-range total and excursions
         if self.engine.dirty or now - self.last_save >= SAVE_EVERY_S:
@@ -130,8 +151,12 @@ class Node:
         self.last_save = self.clock.monotonic()
 
     def shutdown(self):
+        if self.lock:
+            self.lock.off()
         self.save()
         self.outputs.all_off()
+        if self.keypad:
+            self.keypad.close()
         if self.outbox:
             self.outbox.pump(self.link)   # last chance to hand over queued messages
         if self.link:
@@ -149,12 +174,13 @@ def read_keyboard(lines):
 
 
 def load_script(path):
-    """Scenario file: one '<seconds> <command>' per line, '#' for comments."""
+    """Scenario file: one '<seconds> <command>' per line. A line starting with '#' is a comment, and
+    ' # ' (with spaces) starts a comment at the end of a line, so keypad keys like `key 1234#` work."""
     steps = []
     with open(path, encoding="utf-8") as f:
         for raw in f:
-            line = raw.split("#", 1)[0].strip()
-            if line:
+            line = raw.split(" # ", 1)[0].strip()
+            if line and not line.startswith("#"):
                 seconds, command = line.split(None, 1)
                 steps.append((float(seconds), command))
     return sorted(steps)
@@ -167,11 +193,17 @@ def handle_console(node, line):
         return False
     if word == "help":
         from coldchain.mock import HELP
-        print(HELP + "\n  ack               acknowledge the alarm (as the keypad # would)\n"
+        print(HELP + "\n  key 1234#         type on the keypad (1234# unlock, #1234# acknowledge, * clear)\n"
+              "  ack               acknowledge the alarm without a PIN\n"
               "  status            show the LCD and the state\n  quit              stop the node")
     elif word == "ack":
         if node.acknowledge(by="console") is None:
             print("no active alarm")
+    elif word == "key":
+        if node.keypad is None:
+            print("no keypad (KEYPAD_INSTALLED=0)")
+        else:
+            node.keypad.press(line.split(None, 1)[1] if len(line.split()) > 1 else "")
     elif word == "status":
         print("+----------------+\n|%s|\n|%s|\n+----------------+" % node.lcd.lines)
         print(node.engine.snapshot())
@@ -194,10 +226,12 @@ def main(argv=None):
     settings = load_settings()
     clock = SystemClock()
 
-    wifi_fn = None
+    wifi_fn = keypad = None
     if settings["MOCK_HARDWARE"]:
-        from coldchain.mock import MockLcd, MockOutputs, MockSensors
+        from coldchain.mock import MockKeypad, MockLcd, MockOutputs, MockSensors
         sensors, outputs, lcd = MockSensors(clock), MockOutputs(), MockLcd()
+        if settings["KEYPAD_INSTALLED"]:
+            keypad = MockKeypad()
     else:
         from coldchain.hardware import PiLcd, PiOutputs, PiSensors
         from coldchain.sysfs import wifi_up
@@ -205,6 +239,9 @@ def main(argv=None):
         sensors = PiSensors()
         lcd = PiLcd(int(os.environ.get("LCD_ADDRESS", "0x27"), 16))
         wifi_fn = wifi_up
+        if settings["KEYPAD_INSTALLED"]:
+            from coldchain.keypad import Keypad
+            keypad = Keypad(start_thread=True)
 
     link = outbox = None
     if not args.no_mqtt:
@@ -220,7 +257,7 @@ def main(argv=None):
         if outbox.count():
             log.info("Outbox has %d messages from before the restart", outbox.count())
 
-    node = Node(settings, clock, sensors, outputs, lcd, link, outbox, wifi_fn)
+    node = Node(settings, clock, sensors, outputs, lcd, link, outbox, wifi_fn, keypad)
     log.info("Node %s started: profile=%s mock=%s out-of-range total=%ds",
              settings["UNIT_ID"], settings["PROFILE"], settings["MOCK_HARDWARE"], node.engine.total_oor_s)
 
