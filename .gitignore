@@ -1,0 +1,47 @@
+# ---------- Secrets (never commit) ----------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.csr
+*.srl
+*.p12
+service-account*.json
+*-firebase-adminsdk-*.json
+backend/secrets/
+edge/pins.json
+broker/mosquitto/config/passwd
+broker/mosquitto/certs/
+
+# ---------- Python ----------
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+edge/data/
+
+# ---------- Node / web ----------
+node_modules/
+dist/
+coverage/
+*.log
+.firebase/
+firebase/public/
+firebase/*-debug.log
+
+# ---------- CAD ----------
+hardware/kicad/**/*-backups/
+hardware/kicad/**/fp-info-cache
+hardware/kicad/**/*.lck
+hardware/kicad/**/~*
+hardware/freecad/**/*.FCBak
+hardware/freecad/**/*.FCStd1
+
+# ---------- OS / editors ----------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

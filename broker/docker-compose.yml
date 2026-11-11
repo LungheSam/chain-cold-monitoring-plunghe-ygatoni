@@ -1,0 +1,19 @@
+# Development MQTT broker: Mosquitto 2 with password auth, ACLs and TLS on 8883.
+# First run broker/make-certs.sh and create the password file (see broker/README.md).
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0.20
+    container_name: coldchain-mosquitto
+    restart: unless-stopped
+    ports:
+      # Plain MQTT only on this laptop (handy for mosquitto_sub while debugging)
+      - "127.0.0.1:1883:1883"
+      # MQTT over TLS for the Pi and the back end
+      - "8883:8883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/certs:/mosquitto/certs:ro
+      - mosquitto-data:/mosquitto/data
+
+volumes:
+  mosquitto-data:

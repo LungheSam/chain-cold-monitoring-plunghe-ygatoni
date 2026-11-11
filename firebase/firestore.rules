@@ -1,0 +1,40 @@
+rules_version = '2';
+
+// Clients (the dashboard) may only READ. All writes go through the back end, which uses
+// the Admin SDK; the Admin SDK bypasses these rules, so `allow write: if false` is safe.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSupervisor() {
+      return signedIn()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'supervisor';
+    }
+
+    // units/{unitId} and every subcollection (readings, hourly, daily, events, excursions, access)
+    match /units/{unitId}/{document=**} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // A user can read their own profile (to know their role). Supervisors can read all.
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isSupervisor());
+      allow write: if false;
+    }
+
+    // SMS contacts hold phone numbers (personal data): supervisors only.
+    match /contacts/{contactId} {
+      allow read: if isSupervisor();
+      allow write: if false;
+    }
+
+    // Everything else is closed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

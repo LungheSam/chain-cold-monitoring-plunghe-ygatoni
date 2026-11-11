@@ -1,0 +1,18 @@
+# Mosquitto ACL file. Each client gets only the topics it needs.
+
+# Edge node: one MQTT user per unit, named after the unit ID.
+user cold-unit-01
+topic write coldchain/cold-unit-01/telemetry
+topic write coldchain/cold-unit-01/event
+topic write coldchain/cold-unit-01/status
+topic write coldchain/cold-unit-01/cmd/result
+topic read coldchain/cold-unit-01/cmd
+
+# Back end: reads everything, may only send commands.
+user backend
+topic read coldchain/#
+topic write coldchain/+/cmd
+
+# Developer account for mosquitto_sub / mosquitto_pub while debugging.
+user dev
+topic readwrite coldchain/#

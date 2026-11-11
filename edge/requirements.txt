@@ -1,0 +1,9 @@
+# Edge node dependencies.
+# On the Pi, create the venv with:  python3 -m venv --system-site-packages .venv
+# so that gpiozero and lgpio come from the OS packages (python3-gpiozero, python3-lgpio).
+# On a laptop (MOCK_HARDWARE=1) gpiozero is not needed.
+paho-mqtt>=2.1,<3
+RPLCD>=1.3,<2
+smbus2>=0.4,<1
+python-dotenv>=1.0,<2
+pytest>=8

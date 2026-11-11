@@ -1,0 +1,9 @@
+# Always use LF line endings, so scripts and service files work when cloned on the Raspberry Pi.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.stl binary
+*.step binary
+*.FCStd binary
+*.fzz binary
