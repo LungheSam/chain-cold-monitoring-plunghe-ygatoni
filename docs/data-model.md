@@ -27,7 +27,7 @@ ts, internalTemp, ambientTemp, humidity, doorOpen, mainsPower, status
 ### `units/{unitId}/hourly/{YYYYMMDDHH}` and `units/{unitId}/daily/{YYYYMMDD}`: pre-computed summaries
 
 ```
-start, count, minTemp, maxTemp, sumTemp (→ mean), sumArrhenius (→ MKT),
+start, count, minTemp, maxTemp, sumTemp (→ mean), sumArrhenius (→ MKT), countAmbient, sumAmbient,
 secondsInRange, secondsOutOfRange, doorOpenings, doorOpenSeconds, longestDoorOpenS,
 powerCuts, powerCutSeconds
 ```
@@ -80,6 +80,13 @@ smsState: lastAlertAt: {<eventType>: ms}, open: {<problem>: {sentAt, ts}}
 
 `smsLog` is the audit trail. `smsState` holds the 15-minute de-duplication and which alerts still
 wait for a follow-up, so both survive a back end restart.
+
+## Indexes
+
+Every dashboard query filters and sorts on one field only (`ts` or `start`): readings, summaries
+and events by time range, the latest events / excursions / access entries. Firestore creates those
+single-field indexes automatically, so `firebase/firestore.indexes.json` is empty. Filtering events
+by type happens in the browser.
 
 ## Free-tier arithmetic (Spark plan: 50 000 reads, 20 000 writes per day)
 

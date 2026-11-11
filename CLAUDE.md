@@ -87,7 +87,7 @@ CAD tools are installed but not on PATH:
 - [x] Phase 1: alarm logic + simulator (59 tests; `python -m coldchain.node`, see edge/README.md)
 - [x] Phase 2: real edge drivers + bring-up + Fritzing wiring list (edge/SETUP.md, docs/wiring.md)
 - [x] Phase 3: back end (46 tests; STORE=memory + DEV_AUTH=1 to try without Firebase; backend/README.md)
-- [ ] Phase 4: dashboard + seed data
+- [x] Phase 4: dashboard + seed data (`npm run demo` in frontend/ works without Firebase; `npm run seed` in backend/)
 - [ ] Phase 5: keypad, lock, QR unlock
 - [ ] Phase 6: FreeCAD enclosure
 - [ ] Phase 7: KiCad carrier PCB

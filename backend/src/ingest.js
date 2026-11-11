@@ -134,7 +134,7 @@ export function createIngest({ config, store, summaries, sms, bus, hub, now = Da
         mainsPower: t.mainsPower,
         status: t.status,
       });
-      await summaries.addReading(u.unitId, ts, t.internalTemp, u.thresholds.minC, u.thresholds.maxC);
+      await summaries.addReading(u.unitId, ts, t.internalTemp, u.thresholds.minC, u.thresholds.maxC, t.ambientTemp ?? null);
     }
   }
 

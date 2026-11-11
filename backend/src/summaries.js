@@ -17,6 +17,7 @@ export const SECONDS_PER_READING = 60;
 export function emptySummary(start) {
   return {
     start, count: 0, minTemp: null, maxTemp: null, sumTemp: 0, sumArrhenius: 0,
+    countAmbient: 0, sumAmbient: 0,
     secondsInRange: 0, secondsOutOfRange: 0,
     doorOpenings: 0, doorOpenSeconds: 0, longestDoorOpenS: 0,
     powerCuts: 0, powerCutSeconds: 0,
@@ -54,9 +55,13 @@ export function createSummaries({ store, log = console }) {
   }
 
   return {
-    async addReading(unitId, ms, temp, minC, maxC) {
+    async addReading(unitId, ms, temp, minC, maxC, ambient = null) {
       if (temp == null) return; // probe fault: nothing to add
       await update(unitId, ms, (s) => {
+        if (ambient != null) {
+          s.countAmbient = (s.countAmbient || 0) + 1;
+          s.sumAmbient = (s.sumAmbient || 0) + ambient;
+        }
         s.count += 1;
         s.minTemp = s.minTemp == null ? temp : Math.min(s.minTemp, temp);
         s.maxTemp = s.maxTemp == null ? temp : Math.max(s.maxTemp, temp);

@@ -72,7 +72,13 @@ npm run dev
 
 ### 4. Dashboard
 
-Added in Phase 4.
+```bash
+cd frontend
+npm install
+npm run demo      # no Firebase needed: a generated week of data
+```
+
+With Firebase and deployment: [frontend/README.md](frontend/README.md).
 
 ## Project phases
 
@@ -82,7 +88,7 @@ Added in Phase 4.
 | 1 | Alarm logic + simulator | done |
 | 2 | Real edge drivers, bring-up, Fritzing wiring list | done (not yet run on the Pi) |
 | 3 | Back end (MQTT, Firestore, WoT, SMS, auth) | done (Firestore not yet run against a real project) |
-| 4 | Dashboard + seed data | |
+| 4 | Dashboard + seed data | done (demo mode checked in a browser; not yet run against Firebase) |
 | 5 | Keypad, lock, QR unlock | |
 | 6 | FreeCAD enclosure | |
 | 7 | KiCad carrier PCB | |

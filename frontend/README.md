@@ -1,8 +1,59 @@
 # Dashboard (React + Vite)
 
-Scaffolded in **Phase 4**. Planned stack: React, Vite, React Router, Firebase JS SDK (Auth + Firestore
-real-time listeners), Chart.js via `react-chartjs-2`, `qrcode.react`.
+Live data comes straight from Firestore (real-time listeners). The back end is called only for
+actions (acknowledge, thresholds) and the SMS contacts. Light theme, works on a phone.
 
-- Live data is read straight from Firestore. The back end is called only for actions.
-- `npm run build` will write to `../firebase/public` so that `firebase deploy` (run from `firebase/`) hosts it.
-- Config: copy `.env.example` to `.env.local`.
+| Page | What it shows |
+|---|---|
+| Login | Firebase email/password |
+| Overview | Status banner (OK / WARNING / ALARM / OFFLINE), live cards, "last updated X s ago", **Acknowledge alarm** (supervisors), latest events |
+| History | Internal + ambient temperature, safe band shaded, door-open (blue) and power-cut (red) periods; 1 h / 24 h (raw readings) / 7 days (hourly averages with min–max band) |
+| Analytics | % time in range per day, excursions (count, total, longest), door openings per day and the longest, power cuts, min / max / mean, **mean kinetic temperature** |
+| Excursions | Table with start, end, duration, min, max, likely cause; CSV export |
+| Events | All events with a type filter, and the access log |
+| Settings | Supervisors: thresholds and delays, SMS contacts |
+
+The QR unlock page `/unlock/:unitId` and the QR code generator come in Phase 5.
+
+## Run
+
+```bash
+cd frontend
+npm install
+npm test            # unit tests of the calculations (vitest)
+npm run demo        # demo mode: generated week of data, no Firebase, no back end
+```
+
+**Demo mode** needs nothing else: sign in with anything, then use "Simulate a warm probe" in the
+yellow bar to see WARNING → ALARM → acknowledge. Its data is `src/demo/demo-data.json`, made by
+`npm run seed -- --dump ../frontend/src/demo/demo-data.json` in `backend/` (with `STORE=memory`).
+
+**With Firebase:**
+
+```bash
+cp .env.example .env.local    # fill in the web app config from the Firebase console
+npm run dev                   # http://localhost:5173 (the back end must allow this origin in CORS_ORIGIN)
+```
+
+To have something to look at before the hardware runs, seed the real database once from
+`backend/`: `npm run seed` (about 3 300 writes; the free tier allows 20 000 per day).
+
+## Deploy (Firebase Hosting)
+
+```bash
+npm run build                          # writes ../firebase/public
+cd ../firebase
+firebase deploy --only hosting
+```
+
+Then add `https://<project-id>.web.app` to the back end's `CORS_ORIGIN`, and set
+`VITE_BACKEND_URL` to the Railway URL before building.
+
+## Code layout
+
+| Folder | |
+|---|---|
+| `src/data/` | `firebaseData.js` (Firestore + Auth + back end calls) and `demoData.js`, same functions |
+| `src/lib/` | Pure calculations and formatting (MKT, % in range, periods, CSV), unit-tested |
+| `src/pages/` | One file per page |
+| `src/components/` | Chart setup (safe band / period shading plugin) and the card |

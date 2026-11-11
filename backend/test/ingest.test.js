@@ -149,6 +149,7 @@ test('hourly and daily summaries: readings, % in range, door openings, power cut
   assert.equal(hour.longestDoorOpenS, 130);
   assert.equal(hour.powerCuts, 1);
   assert.equal(hour.powerCutSeconds, 300);
+  assert.equal(hour.sumAmbient / hour.countAmbient, 24);
   const day = h.store.db.summaries.get(`${UNIT}/daily/20261115`);
   assert.equal(day.count, 60);
   // MKT is above the plain mean (5.67 C) because warm periods count more
