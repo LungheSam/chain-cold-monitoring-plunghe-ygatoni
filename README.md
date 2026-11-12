@@ -90,6 +90,6 @@ With Firebase and deployment: [frontend/README.md](frontend/README.md).
 | 3 | Back end (MQTT, Firestore, WoT, SMS, auth) | done (Firestore not yet run against a real project) |
 | 4 | Dashboard + seed data | done (demo mode checked in a browser; not yet run against Firebase) |
 | 5 | Keypad, lock, QR unlock | done (mock keypad and lock; not yet on the Pi) |
-| 6 | FreeCAD enclosure | |
+| 6 | FreeCAD enclosure | done (script runs headless, all parts valid; dimensions to VERIFY before printing) |
 | 7 | KiCad carrier PCB | |
 | 8 | End-to-end tests and demo script | |

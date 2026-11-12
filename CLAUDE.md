@@ -89,6 +89,6 @@ CAD tools are installed but not on PATH:
 - [x] Phase 3: back end (46 tests; STORE=memory + DEV_AUTH=1 to try without Firebase; backend/README.md)
 - [x] Phase 4: dashboard + seed data (`npm run demo` in frontend/ works without Firebase; `npm run seed` in backend/)
 - [x] Phase 5: keypad + PIN hashes, lock timer, lockout, QR unlock page + Door QR page (edge/README.md)
-- [ ] Phase 6: FreeCAD enclosure
+- [x] Phase 6: FreeCAD enclosure (`hardware/freecad/enclosure.py`, exports + report.txt with the VERIFY list)
 - [ ] Phase 7: KiCad carrier PCB
 - [ ] Phase 8: end-to-end test + demo script

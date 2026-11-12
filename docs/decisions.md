@@ -189,4 +189,5 @@ failures are normal). Phase 2 must feed the engine one reading per *new* sensor 
 - [ ] Keypad ribbon pin order (rows/columns), flat-cable width
 - [ ] Time of one PIN check on the Pi (`python -m coldchain.pins time`, 17 ms on the laptop; should stay under ~100 ms)
 - [ ] DHT22 module: has its own pull-up?
+- [ ] Enclosure: every `VERIFY` parameter in `hardware/freecad/exports/report.txt` (LCD bezel and depth, keypad and ribbon, solenoid holes and bolt, reed/magnet bodies, screw pilot holes, Pi + carrier stack height 30 mm assumed)
 - [ ] Cable diameters (DS18B20 probe, reed) for the PG7 glands (PG7 fits about 3–6.5 mm cable: VERIFY with the gland's datasheet)
