@@ -183,7 +183,8 @@ failures are normal). Phase 2 must feed the engine one reading per *new* sensor 
 - [ ] LCD module outline, window and hole spacing (calipers): assumed 80 × 36 mm, holes 75 × 31 mm, M3
 - [ ] Pi 4 hole pattern 58 × 49 mm, M2.5 (from the Raspberry Pi mechanical drawing, check with calipers)
 - [ ] Reed switch: contact closed when the magnet is near? Body and magnet dimensions
-- [ ] Solenoid lock current at 5 V, body and mounting-hole dimensions, rated duty cycle
+- [ ] Solenoid lock current at 5 V, body and mounting-hole dimensions, rated duty cycle (the PCB lock tracks are sized for about 1 A)
+- [ ] Carrier PCB: Pi header position / pin 1, standoff height, BC547 pin order (list in `hardware/kicad/README.md`)
 - [ ] 12 V adapter voltage with no load and with the Peltier running, current rating
 - [ ] UPS board model, size, which pins/I2C addresses it uses
 - [ ] Keypad ribbon pin order (rows/columns), flat-cable width

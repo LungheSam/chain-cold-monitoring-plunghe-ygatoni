@@ -67,7 +67,7 @@ but not problem 2. The carrier PCB (Phase 7) will include two BSS138 + 4 resisto
 
 5 V 2 A adapter (+) → solenoid → MOSFET drain; source → GND; 1N4007 (or 1N5819) across the
 solenoid, cathode to +5 V; GPIO 25 → 100 Ω → gate; 10 kΩ gate → GND. Lock-adapter GND joined to Pi GND.
-Use IRLB8721 (TO-220, easy to solder) or AO3400 (SOT-23, PCB only). Not IRLZ44N, which is not fully
+Use IRLB8721 (TO-220, easy to solder) or AO3400 (SOT-23, PCB only; the carrier PCB uses an AO3400A). Not IRLZ44N, which is not fully
 on at 3.3 V gate drive. Solenoid current about 1 A: **VERIFY** by measuring with the lock energised.
 
 ## Fritzing wiring list (design review)

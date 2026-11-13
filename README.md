@@ -91,5 +91,5 @@ With Firebase and deployment: [frontend/README.md](frontend/README.md).
 | 4 | Dashboard + seed data | done (demo mode checked in a browser; not yet run against Firebase) |
 | 5 | Keypad, lock, QR unlock | done (mock keypad and lock; not yet on the Pi) |
 | 6 | FreeCAD enclosure | done (script runs headless, all parts valid; dimensions to VERIFY before printing) |
-| 7 | KiCad carrier PCB | |
+| 7 | KiCad carrier PCB | done (ERC/DRC clean, Gerbers ready; header position and parts to VERIFY before ordering) |
 | 8 | End-to-end tests and demo script | |

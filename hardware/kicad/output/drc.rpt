@@ -1,0 +1,38 @@
+** Drc report for carrier.kicad_pcb **
+** Created on 2026-11-13T08:53:42 **
+** Report includes: Errors, Warnings, Exclusions **
+
+** Found 5 DRC violations **
+[silk_overlap]: Silkscreen clearance
+    Rule: board setup constraints silk; warning
+    @(107.0160 mm, 137.2820 mm): Reference field of R4
+    @(106.4380 mm, 140.5520 mm): Segment of R3 on F.Silkscreen
+[silk_overlap]: Silkscreen clearance
+    Rule: board setup constraints silk; warning
+    @(132.7540 mm, 123.0580 mm): Arc of Q1 on F.Silkscreen
+    @(135.7180 mm, 123.5660 mm): Reference field of R11
+[silk_overlap]: Silkscreen clearance
+    Rule: board setup constraints silk; warning
+    @(150.8880 mm, 126.8360 mm): Segment of R7 on F.Silkscreen
+    @(151.2120 mm, 123.5660 mm): Reference field of R8
+[silk_overlap]: Silkscreen clearance
+    Rule: board setup constraints silk; warning
+    @(139.4580 mm, 126.8360 mm): Segment of R11 on F.Silkscreen
+    @(139.5280 mm, 123.5660 mm): Reference field of R12
+[silk_overlap]: Silkscreen clearance
+    Rule: board setup constraints silk; warning
+    @(154.4440 mm, 142.5840 mm): Segment of R9 on F.Silkscreen
+    @(154.5140 mm, 139.3140 mm): Reference field of R10
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** Ignored checks **
+    - Footprint has no courtyard defined
+    - Track endpoint not centered on via
+    - Tuning profile track geometries
+    - Footprint doesn't match symbol's footprint filters
+    - Footprint component type doesn't match footprint pads
+
+** End of Report **

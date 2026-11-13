@@ -1,0 +1,12 @@
+(version 1)
+
+# The solenoid current (about 1 A, VERIFY) flows on these nets: never thinner than 1.0 mm
+# (IPC-2221, 1 oz outer layer, 10 C rise needs 0.30 mm; 1.0 mm leaves margin for the pull-in surge).
+(rule "Lock current tracks"
+  (condition "A.NetName == '/+5V_LOCK' || A.NetName == '/LOCK_N'")
+  (constraint track_width (min 1.0mm)))
+
+# Every GND pad is also connected by a track, so one thermal spoke into the pour is enough.
+(rule "GND thermal spokes"
+  (condition "A.NetName == '/GND'")
+  (constraint min_resolved_spokes 1))

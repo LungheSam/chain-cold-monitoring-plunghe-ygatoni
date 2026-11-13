@@ -37,6 +37,8 @@ hardware/kicad/**/*-backups/
 hardware/kicad/**/fp-info-cache
 hardware/kicad/**/*.lck
 hardware/kicad/**/~*
+hardware/kicad/**/*.kicad_prl
+hardware/kicad/output/gerbers/
 hardware/freecad/**/*.FCBak
 hardware/freecad/**/*.FCStd1
 
@@ -45,3 +47,4 @@ hardware/freecad/**/*.FCStd1
 Thumbs.db
 .vscode/
 .idea/
+hardware/kicad/output/build.log
