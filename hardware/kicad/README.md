@@ -91,7 +91,7 @@ breadboard/protoboard build and this design is shown in the report.
       pin 1 at x = 8.37 mm): print `output/carrier-top.png` at 1:1 or check the PDF against the Pi
 - [ ] Standoff height between Pi and board: about 11 mm for an 8.5 mm female socket (measure the socket)
 - [ ] BC547 pin order C-B-E (the footprint uses this order)
-- [ ] Keypad ribbon order (R1–R4, C1–C4) matches J8
+- [x] Keypad ribbon order R1–R4, C1–C4 matches J8 pins 1–8 (seller's diagram)
 - [ ] LCD backpack pull-ups: if it already has 5 V pull-ups, leave out R11/R12
 - [ ] DHT22 module pull-up: if it has one, leave out R2
 - [ ] Solenoid current (measure): if it is above 1.5 A, ask for wider tracks

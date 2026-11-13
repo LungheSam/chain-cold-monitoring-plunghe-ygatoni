@@ -4664,7 +4664,7 @@
 		(property "Value" "Keypad" (at 289.56 219.71 0) (effects (font (size 1.27 1.27)) (justify left)))
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical" (at 284.48 223.52 0) (effects (font (size 1.27 1.27)) (justify left) (hide yes)))
 		(property "Datasheet" "" (at 284.48 218.44 0) (effects (font (size 1.27 1.27)) (justify left) (hide yes)))
-		(property "Description" "ribbon order VERIFY" (at 284.48 218.44 0) (effects (font (size 1.27 1.27)) (justify left) (hide yes)))
+		(property "Description" "ribbon R1 R2 R3 R4 C1 C2 C3 C4, left to right with the keys facing you" (at 284.48 218.44 0) (effects (font (size 1.27 1.27)) (justify left) (hide yes)))
 		(pin "1" (uuid "b588cde3-8b1e-580d-9635-ccbd1bd8df7d"))
 		(pin "2" (uuid "8ec2057a-924b-5298-a3c8-58a5a8f82f8b"))
 		(pin "3" (uuid "f4e88f73-577b-5354-b25a-e16999fdc3bd"))

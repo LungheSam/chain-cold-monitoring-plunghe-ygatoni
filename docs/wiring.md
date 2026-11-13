@@ -165,7 +165,8 @@ Draw the Peltier and fan as a separate load on the 12 V node **after the fuse**,
 | R1, R2, R3, R4 | 29 (GPIO 5), 31 (GPIO 6), 33 (GPIO 13), 35 (GPIO 19) | yellow |
 | C1, C2, C3, C4 | 32 (GPIO 12), 36 (GPIO 16), 38 (GPIO 20), 40 (GPIO 21) | cyan |
 
-The ribbon order differs between keypads (VERIFY with `test_keypad`).
+Ribbon order of our 4x4 keypad (seller's diagram): R1 R2 R3 R4 C1 C2 C3 C4, left to right with the keys
+facing you, ribbon at the bottom (below `* 0 # D`). Confirm once with `test_keypad`.
 
 ### Solenoid lock (extension)
 

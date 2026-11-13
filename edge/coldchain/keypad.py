@@ -4,8 +4,9 @@ Rows are outputs, columns are inputs with pull-ups. To scan, drive one row LOW a
 which column reads LOW. No diodes are needed as long as only one key is pressed at a time.
 
 Rows R1-R4: GPIO 5, 6, 13, 19. Columns C1-C4: GPIO 12, 16, 20, 21.
-The order of the 8 ribbon wires differs between keypads: VERIFY with tests/hw/test_keypad.py
-(press each key and check the right character appears; if not, swap entries in ROW_PINS/COL_PINS).
+Our 4x4 membrane keypad's ribbon is R1 R2 R3 R4 C1 C2 C3 C4, left to right with the keys facing you
+(seller's diagram). Still run tests/hw/test_keypad.py once: if a key prints the wrong character,
+swap entries in ROW_PINS/COL_PINS.
 A background thread scans every 20 ms; a key counts once it is seen in two scans in a row (debounce).
 The PIN logic is in access.py.
 """

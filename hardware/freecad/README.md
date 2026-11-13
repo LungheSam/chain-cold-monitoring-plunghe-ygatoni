@@ -47,6 +47,10 @@ Print: PETG (better than PLA near condensation and the Pi's heat), 0.2 mm layers
  front wall:     [USB-C]
 ```
 
+Orientation: the front of the box is the USB-C wall. Stick the keypad on with its ribbon towards the
+front (into the slot) and mount the LCD with its pin header towards the back, so both read upright
+for a person standing in front.
+
 Fit check with the current values: 4 mm free above the Pi + carrier stack (assumed 30 mm), and
 19 mm free below the LCD module, for the level shifter and wiring. A UPS board stacked on the Pi
 would not fit: if you use one, measure it and raise `IN_Z` (the fit check will tell you).
@@ -57,7 +61,7 @@ All values marked `VERIFY` in the script are listed in `exports/report.txt`. The
 ones are below. A wrong value here means a part that does not fit.
 
 1. LCD: PCB size, hole spacing, the metal frame (bezel) size and height, and the depth with the backpack.
-2. Keypad: outline, ribbon width and connector, and which edge the ribbon leaves from.
+2. Keypad: outline, and the ribbon's connector width (the slot is 22 × 4 mm).
 3. Solenoid lock: mounting holes, bolt size, and bolt height.
 4. Reed switch and magnet bodies.
 5. PG7 gland thread and the grommet hole size (from their datasheets).

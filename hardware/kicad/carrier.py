@@ -98,7 +98,7 @@ PARTS = {
     # Keypad and spare
     "J8": ("Connector_Generic:Conn_01x08", "Keypad", "Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical",
            {"1": "ROW1", "2": "ROW2", "3": "ROW3", "4": "ROW4", "5": "COL1", "6": "COL2", "7": "COL3", "8": "COL4"},
-           "keypad", "ribbon order VERIFY"),
+           "keypad", "ribbon R1 R2 R3 R4 C1 C2 C3 C4, left to right with the keys facing you"),
     "J12": ("Connector_Generic:Conn_01x02", "Spare GPIO26", "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
             {"1": "SPARE", "2": "GND"}, "keypad", ""),
 

@@ -4,7 +4,7 @@ import time
 from tests.hw.common import banner, stop_if_service_running
 
 WIRING = """
-Keypad ribbon (8 wires, left to right with the keys facing you; VERIFY on your keypad):
+Keypad ribbon (8 wires, left to right with the keys facing you, from the seller's diagram):
 R1 R2 R3 R4 C1 C2 C3 C4 -> GPIO 5, 6, 13, 19, 12, 16, 20, 21
                         -> pins 29, 31, 33, 35, 32, 36, 38, 40
 """

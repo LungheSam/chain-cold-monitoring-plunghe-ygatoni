@@ -187,7 +187,9 @@ failures are normal). Phase 2 must feed the engine one reading per *new* sensor 
 - [ ] Carrier PCB: Pi header position / pin 1, standoff height, BC547 pin order (list in `hardware/kicad/README.md`)
 - [ ] 12 V adapter voltage with no load and with the Peltier running, current rating
 - [ ] UPS board model, size, which pins/I2C addresses it uses
-- [ ] Keypad ribbon pin order (rows/columns), flat-cable width
+- [x] Keypad ribbon pin order: R1–R4 then C1–C4, left to right (seller's diagram; confirm once with `test_keypad`)
+- [x] Pi header pin-out: matches the official Raspberry Pi 4 diagram (checked against `hardware/kicad/carrier.py`)
+- [ ] Keypad flat-cable and connector width (for the lid slot)
 - [ ] Time of one PIN check on the Pi (`python -m coldchain.pins time`, 17 ms on the laptop; should stay under ~100 ms)
 - [ ] DHT22 module: has its own pull-up?
 - [ ] Enclosure: every `VERIFY` parameter in `hardware/freecad/exports/report.txt` (LCD bezel and depth, keypad and ribbon, solenoid holes and bolt, reed/magnet bodies, screw pilot holes, Pi + carrier stack height 30 mm assumed)

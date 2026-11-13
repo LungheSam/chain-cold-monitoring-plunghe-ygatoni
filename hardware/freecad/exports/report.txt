@@ -43,11 +43,11 @@ Parameters to VERIFY before printing:
   LEDs and buzzer on the lid
       LED_D = 5.0                     # 5 mm LEDs. VERIFY
       BUZZER_D, BUZZER_H = 12.0, 8.5  # small passive buzzer. VERIFY
-  4x4 membrane keypad, stuck on the lid with its own adhesive. VERIFY outline and ribbon.
+  4x4 membrane keypad, stuck on the lid with its own adhesive. VERIFY the outline.
       KEYPAD = (69.0, 77.0)
       KEYPAD_CENTER = (54.0, 45.0)    # above the Pi (only the thin ribbon goes inside here)
       RIBBON_SLOT = (22.0, 4.0)       # must pass the 8-pin connector on the ribbon's end. VERIFY
-      RIBBON_SLOT_INSET = 6.0         # slot centre from the keypad's back edge (ribbon side). VERIFY which edge
+      RIBBON_SLOT_INSET = 6.0         # slot centre from the keypad's front edge (ribbon side)
       GROOVE_W, GROOVE_D = 1.2, 0.4   # outline groove on the lid's outer face to place the keypad
   cable entries
       GLAND_HOLE_D = 12.5   # PG7 gland thread is 12.5 mm. VERIFY with the gland's datasheet

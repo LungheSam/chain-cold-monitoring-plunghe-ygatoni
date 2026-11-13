@@ -86,11 +86,13 @@ BUZZER_AT = (165.0, 14.0)
 GRILLE_HOLE_D, GRILLE_PITCH, GRILLE_R = 1.6, 3.0, 5.0
 RING_WALL, RING_H = 1.6, 4.0    # holder ring under the lid
 
-# ---- 4x4 membrane keypad, stuck on the lid with its own adhesive. VERIFY outline and ribbon.
+# ---- 4x4 membrane keypad, stuck on the lid with its own adhesive. VERIFY the outline.
+#      Its ribbon leaves the bottom edge (below * 0 # D), so the slot is at the keypad's front edge:
+#      the keys then read upright for someone standing at the front of the box.
 KEYPAD = (69.0, 77.0)
 KEYPAD_CENTER = (54.0, 45.0)    # above the Pi (only the thin ribbon goes inside here)
 RIBBON_SLOT = (22.0, 4.0)       # must pass the 8-pin connector on the ribbon's end. VERIFY
-RIBBON_SLOT_INSET = 6.0         # slot centre from the keypad's back edge (ribbon side). VERIFY which edge
+RIBBON_SLOT_INSET = 6.0         # slot centre from the keypad's front edge (ribbon side)
 GROOVE_W, GROOVE_D = 1.2, 0.4   # outline groove on the lid's outer face to place the keypad
 
 # ---- cable entries
@@ -291,9 +293,9 @@ def make_lid():
         for j in range(-n, n + 1):
             if math.hypot(i * GRILLE_PITCH, j * GRILLE_PITCH) <= GRILLE_R:
                 holes.append(cyl(bx + i * GRILLE_PITCH, by + j * GRILLE_PITCH, -1, GRILLE_HOLE_D, LID_T + 2))
-    # Keypad ribbon slot, under the keypad near its back edge
+    # Keypad ribbon slot, under the keypad near its front (ribbon) edge
     kx, ky = ix(KEYPAD_CENTER[0]), iy(KEYPAD_CENTER[1])
-    sy = ky + KEYPAD[1] / 2 - RIBBON_SLOT_INSET
+    sy = ky - KEYPAD[1] / 2 + RIBBON_SLOT_INSET
     holes.append(box(kx - RIBBON_SLOT[0] / 2, sy - RIBBON_SLOT[1] / 2, -1, RIBBON_SLOT[0], RIBBON_SLOT[1], LID_T + 2))
     # Keypad outline groove on the outer face
     outer = box(kx - KEYPAD[0] / 2 - CLEAR - GROOVE_W, ky - KEYPAD[1] / 2 - CLEAR - GROOVE_W, LID_T - GROOVE_D,

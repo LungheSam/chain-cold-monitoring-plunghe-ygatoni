@@ -10,7 +10,7 @@
 "J5","LEDs","Connector_JST:JST_XH_B3B-XH-A_1x03_P2.50mm_Vertical","1",""
 "J6","Buzzer","Connector_JST:JST_XH_B2B-XH-A_1x02_P2.50mm_Vertical","1",""
 "J7","LCD I2C","Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical","1","same order as the PCF8574 backpack"
-"J8","Keypad","Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical","1","ribbon order VERIFY"
+"J8","Keypad","Connector_PinHeader_2.54mm:PinHeader_1x08_P2.54mm_Vertical","1","ribbon R1 R2 R3 R4 C1 C2 C3 C4, left to right with the keys facing you"
 "J9","12V sense in","TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal","1","only the divider's ~1 mA; never the Peltier current"
 "J10","Lock 5V in","TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal","1","separate 5 V 2 A adapter; its GND joins the Pi GND here"
 "J11","Solenoid","TerminalBlock_Phoenix:TerminalBlock_Phoenix_MKDS-1,5-2-5.08_1x02_P5.08mm_Horizontal","1",""
