@@ -12,7 +12,8 @@
     "start": "node --env-file-if-exists=.env src/index.js",
     "test": "node --test",
     "set-role": "node --env-file-if-exists=.env scripts/set-role.js",
-    "seed": "node --env-file-if-exists=.env scripts/seed.js"
+    "seed": "node --env-file-if-exists=.env scripts/seed.js",
+    "e2e": "node e2e/run.mjs"
   },
   "dependencies": {
     "ajv": "^8.20.0",
@@ -20,5 +21,8 @@
     "express": "^5.3.0",
     "firebase-admin": "^14.5.0",
     "mqtt": "^5.16.1"
+  },
+  "devDependencies": {
+    "aedes": "^1.2.0"
   }
 }

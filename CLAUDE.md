@@ -73,6 +73,7 @@ I2C 2/3 · lock gate 25 · keypad rows 5, 6, 13, 19 · cols 12, 16, 20, 21 · sp
 cd edge && python -m venv .venv && .venv/Scripts/pip install -r requirements.txt && .venv/Scripts/python -m pytest
 # backend
 cd backend && npm test
+cd backend && npm run e2e     # broker + back end + mock node, 34 checks, 1.5 min
 # broker
 cd broker && ./make-certs.sh <laptop-ip> && docker compose up -d
 ```
@@ -91,4 +92,4 @@ CAD tools are installed but not on PATH:
 - [x] Phase 5: keypad + PIN hashes, lock timer, lockout, QR unlock page + Door QR page (edge/README.md)
 - [x] Phase 6: FreeCAD enclosure (`hardware/freecad/enclosure.py`, exports + report.txt with the VERIFY list)
 - [x] Phase 7: KiCad carrier PCB (`hardware/kicad/build.sh`: table -> schematic -> routed board -> exports)
-- [ ] Phase 8: end-to-end test + demo script
+- [x] Phase 8: end-to-end test (`npm run e2e`), test plan, demo script, report pictures (docs/)

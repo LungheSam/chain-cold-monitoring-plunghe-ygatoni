@@ -25,7 +25,7 @@ See [docs/architecture.md](docs/architecture.md) for the full picture.
 | [frontend/](frontend/) | React dashboard and QR unlock page |
 | [firebase/](firebase/) | Firestore rules and indexes, hosting config |
 | [hardware/](hardware/) | Fritzing, FreeCAD enclosure, KiCad carrier PCB |
-| [docs/](docs/) | Architecture, wiring, MQTT topics, Thing Description, data model, decisions |
+| [docs/](docs/) | Architecture, wiring, MQTT topics, Thing Description, data model, decisions, [test plan](docs/test-plan.md), [demo script](docs/demo-script.md), [report pictures](docs/report-media.md) |
 
 ## Prerequisites
 
@@ -92,4 +92,4 @@ With Firebase and deployment: [frontend/README.md](frontend/README.md).
 | 5 | Keypad, lock, QR unlock | done (mock keypad and lock; not yet on the Pi) |
 | 6 | FreeCAD enclosure | done (script runs headless, all parts valid; dimensions to VERIFY before printing) |
 | 7 | KiCad carrier PCB | done (ERC/DRC clean, Gerbers ready; header position and parts to VERIFY before ordering) |
-| 8 | End-to-end tests and demo script | |
+| 8 | End-to-end tests and demo script | done (`npm run e2e` in backend/: 34/34; system tests on the Pi to do, see docs/test-plan.md) |
