@@ -24,6 +24,7 @@ commands to the node, SMS alerts and the small dashboard API.
 cd backend
 npm install
 npm test                 # 47 tests, no network or Firebase needed
+npm run broker           # local MQTT broker on mqtt://localhost:1883 (no Docker needed; laptop only)
 npm run e2e              # whole chain: in-process MQTT broker + this back end + the mock edge node (1.5 min)
 cp .env.example .env
 npm run dev
