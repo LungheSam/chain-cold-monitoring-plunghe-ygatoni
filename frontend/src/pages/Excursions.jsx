@@ -1,5 +1,6 @@
 // Excursion records: what stock may be affected. CSV export for the pharmacist / report.
 import { useState } from 'react';
+import { Download, ThermometerSun } from 'lucide-react';
 import { useData, useSubscription } from '../context.jsx';
 import { UNIT_ID } from '../config.js';
 import { excursionStats, excursionsToCsv } from '../lib/analytics.js';
@@ -22,19 +23,19 @@ export default function Excursions() {
   const excursions = useSubscription((cb) => data.subscribeExcursions(UNIT_ID, cb), [data]);
   const [showBlips, setShowBlips] = useState(false);
 
-  if (!excursions) return <p className="muted">Loading…</p>;
+  if (!excursions) return <p className="loading"><span className="spinner" />Loading…</p>;
   const rows = excursions.filter((e) => showBlips || e.confirmed);
   const stats = excursionStats(excursions, { confirmedOnly: !showBlips });
 
   return (
     <>
       <div className="toolbar">
-        <h1 className="grow" style={{ margin: 0 }}>Excursions</h1>
+        <h1 className="grow page-title" style={{ margin: 0 }}><ThermometerSun size={24} />Excursions</h1>
         <label className="checkbox">
           <input type="checkbox" checked={showBlips} onChange={(e) => setShowBlips(e.target.checked)} />
           show short blips (not confirmed)
         </label>
-        <button type="button" className="secondary" onClick={() => downloadCsv(rows)} disabled={!rows.length}>Export CSV</button>
+        <button type="button" className="secondary" onClick={() => downloadCsv(rows)} disabled={!rows.length}><Download size={16} />Export CSV</button>
       </div>
       <p className="muted">
         Each time the internal temperature left the safe range. Use start, end and the min/max to decide

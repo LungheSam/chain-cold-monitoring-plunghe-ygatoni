@@ -2,7 +2,9 @@
 // % time in range per day, excursions, door openings, power cuts, min/max/mean and MKT.
 import { useEffect, useState } from 'react';
 import { Bar } from 'react-chartjs-2';
+import { ChartColumn, DoorOpen, Gauge, Thermometer, ThermometerSun, TriangleAlert, Zap, ZapOff } from 'lucide-react';
 import { useData, useSubscription } from '../context.jsx';
+import { useTheme } from '../theme.jsx';
 import { UNIT_ID } from '../config.js';
 import Card from '../components/Card.jsx';
 import { COLORS } from '../components/charts.js';
@@ -22,6 +24,7 @@ const barOptions = (unit, max) => ({
 
 export default function Analytics() {
   const { data } = useData();
+  const { theme } = useTheme();
   const [days, setDays] = useState(7);
   const [daily, setDaily] = useState(null);
   const [error, setError] = useState('');
@@ -39,7 +42,7 @@ export default function Analytics() {
   }, [data, days]);
 
   if (error) return <p className="error">Could not load: {error}</p>;
-  if (!daily) return <p className="muted">Loading…</p>;
+  if (!daily) return <p className="loading"><span className="spinner" />Loading…</p>;
 
   const from = Date.now() - days * 86400000;
   const total = combineSummaries(daily);
@@ -58,7 +61,7 @@ export default function Analytics() {
   return (
     <>
       <div className="toolbar">
-        <h1 className="grow" style={{ margin: 0 }}>Analytics</h1>
+        <h1 className="grow page-title" style={{ margin: 0 }}><ChartColumn size={24} />Analytics</h1>
         <div className="segmented">
           {Object.entries(PERIODS).map(([d, label]) => (
             <button type="button" key={d} className={Number(d) === days ? 'active' : ''} onClick={() => setDays(Number(d))}>{label}</button>
@@ -69,27 +72,27 @@ export default function Analytics() {
       {daily.length === 0 && <p className="muted">No data in this period yet.</p>}
 
       <div className="cards">
-        <Card label="Time in range" value={formatPercent(total.percentInRange)}
+        <Card icon={Gauge} label="Time in range" value={formatPercent(total.percentInRange)}
           tone={total.percentInRange != null && total.percentInRange < 99.9 ? 'bad' : 'good'}
           sub={`out of range ${formatDuration(total.secondsOutOfRange)}`} />
-        <Card label="Excursions" value={exc.count} tone={exc.count ? 'bad' : 'good'}
+        <Card icon={TriangleAlert} label="Excursions" value={exc.count} tone={exc.count ? 'bad' : 'good'}
           sub={`total ${formatDuration(exc.totalDurationS)}, longest ${formatDuration(exc.longestS)}`} />
-        <Card label="Internal min / max" value={`${formatTemp(total.minTemp)}`} sub={`max ${formatTemp(total.maxTemp)}`} />
-        <Card label="Mean / MKT" value={formatTemp(total.meanTemp)}
+        <Card icon={Thermometer} label="Internal min / max" value={`${formatTemp(total.minTemp)}`} sub={`max ${formatTemp(total.maxTemp)}`} />
+        <Card icon={ThermometerSun} label="Mean / MKT" value={formatTemp(total.meanTemp)}
           sub={<>MKT {formatTemp(total.mkt)} <span title="Mean kinetic temperature: one temperature with the same total effect on vaccine stability as the real, varying temperatures. Warm periods weigh more than in a plain average.">ⓘ</span></>} />
-        <Card label="Door openings" value={total.doorOpenings} sub={`longest ${formatDuration(total.longestDoorOpenS)}`} />
-        <Card label="Power cuts" value={total.powerCuts} tone={total.powerCuts ? 'bad' : ''}
+        <Card icon={DoorOpen} label="Door openings" value={total.doorOpenings} sub={`longest ${formatDuration(total.longestDoorOpenS)}`} />
+        <Card icon={total.powerCuts ? ZapOff : Zap} label="Power cuts" value={total.powerCuts} tone={total.powerCuts ? 'bad' : ''}
           sub={`total ${formatDuration(total.powerCutSeconds)}`} />
       </div>
 
       <div className="grid-2" style={{ marginTop: 16 }}>
         <div className="panel">
           <h2 style={{ marginTop: 0 }}>% time in range per day</h2>
-          <div className="chart-box small"><Bar data={inRangeChart} options={barOptions(' %', 100)} /></div>
+          <div className="chart-box small"><Bar key={theme} data={inRangeChart} options={barOptions(' %', 100)} /></div>
         </div>
         <div className="panel">
           <h2 style={{ marginTop: 0 }}>Door openings per day</h2>
-          <div className="chart-box small"><Bar data={doorChart} options={barOptions('', undefined)} /></div>
+          <div className="chart-box small"><Bar key={theme} data={doorChart} options={barOptions('', undefined)} /></div>
         </div>
       </div>
 

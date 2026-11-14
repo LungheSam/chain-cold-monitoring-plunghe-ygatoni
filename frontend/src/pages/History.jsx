@@ -3,7 +3,9 @@
 // uses hourly summaries to keep Firestore reads low (168 instead of 10 080).
 import { useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
+import { ChartLine } from 'lucide-react';
 import { useData, useUnit } from '../context.jsx';
+import { useTheme } from '../theme.jsx';
 import { UNIT_ID } from '../config.js';
 import { COLORS, shadingPlugin } from '../components/charts.js';
 import { hourlyPoints, periodsFromEvents } from '../lib/analytics.js';
@@ -13,6 +15,7 @@ const RANGES = { '1h': 3600000, '24h': 86400000, '7d': 7 * 86400000 };
 
 export default function History() {
   const { data } = useData();
+  const { theme } = useTheme();
   const unit = useUnit();
   const [range, setRange] = useState('24h');
   const [state, setState] = useState({ loading: true });
@@ -64,7 +67,7 @@ export default function History() {
     datasets.push(
       {
         label: 'Internal hourly min–max', data: points.map((p) => ({ x: p.x, y: p.max })), yAxisID: 'y',
-        borderWidth: 0, pointRadius: 0, backgroundColor: 'rgba(11, 83, 148, 0.18)', fill: '+1',
+        borderWidth: 0, pointRadius: 0, backgroundColor: COLORS.internalFill, fill: '+1',
       },
       { label: 'min', data: points.map((p) => ({ x: p.x, y: p.min })), yAxisID: 'y', borderWidth: 0, pointRadius: 0 },
     );
@@ -103,7 +106,7 @@ export default function History() {
   return (
     <>
       <div className="toolbar">
-        <h1 className="grow" style={{ margin: 0 }}>Temperature history</h1>
+        <h1 className="grow page-title" style={{ margin: 0 }}><ChartLine size={24} />Temperature history</h1>
         <div className="segmented">
           {Object.keys(RANGES).map((r) => (
             <button type="button" key={r} className={r === range ? 'active' : ''} onClick={() => setRange(r)}>
@@ -114,10 +117,10 @@ export default function History() {
       </div>
       <div className="panel">
         {state.error && <p className="error">Could not load: {state.error}</p>}
-        {state.loading && <p className="muted">Loading…</p>}
+        {state.loading && <p className="loading"><span className="spinner" />Loading…</p>}
         {!state.loading && state.points?.length === 0 && <p className="muted">No data in this period.</p>}
         <div className="chart-box">
-          {state.points && <Line data={chartData} options={options} plugins={[shadingPlugin]} />}
+          {state.points && <Line key={theme} data={chartData} options={options} plugins={[shadingPlugin]} />}
         </div>
         <div className="legend-note">
           <span><span className="swatch" style={{ background: COLORS.band, border: `1px dashed ${COLORS.bandEdge}` }} />safe range {t.minC}–{t.maxC} °C</span>

@@ -1,7 +1,12 @@
 import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router';
 import { useState } from 'react';
+import {
+  ChartColumn, ChartLine, LayoutDashboard, LogOut, Menu, QrCode, ScrollText, Settings as SettingsIcon,
+  Snowflake, ThermometerSun, X,
+} from 'lucide-react';
 import { useData } from './context.jsx';
 import { UNIT_ID } from './config.js';
+import { ThemeToggle } from './theme.jsx';
 import Login from './pages/Login.jsx';
 import Overview from './pages/Overview.jsx';
 import History from './pages/History.jsx';
@@ -15,7 +20,7 @@ import DoorQr from './pages/DoorQr.jsx';
 function RequireAuth({ children }) {
   const { user, role } = useData();
   const location = useLocation();
-  if (user === undefined) return <p className="page muted">Loading…</p>;
+  if (user === undefined) return <p className="page loading"><span className="spinner" />Loading…</p>;
   if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   if (!role) {
     return (
@@ -43,31 +48,52 @@ function DemoBanner() {
   );
 }
 
+const LINKS = [
+  ['/', 'Overview', LayoutDashboard],
+  ['/history', 'History', ChartLine],
+  ['/analytics', 'Analytics', ChartColumn],
+  ['/excursions', 'Excursions', ThermometerSun],
+  ['/events', 'Events', ScrollText],
+];
+const SUPERVISOR_LINKS = [['/door-qr', 'Door QR', QrCode], ['/settings', 'Settings', SettingsIcon]];
+
 function Layout({ children }) {
   const { data, user, role } = useData();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
-  const links = [
-    ['/', 'Overview'], ['/history', 'History'], ['/analytics', 'Analytics'],
-    ['/excursions', 'Excursions'], ['/events', 'Events'],
-  ];
-  if (role === 'supervisor') links.push(['/door-qr', 'Door QR'], ['/settings', 'Settings']);
+  const links = role === 'supervisor' ? [...LINKS, ...SUPERVISOR_LINKS] : LINKS;
   return (
     <>
       <DemoBanner />
       <header className="topbar">
-        <div className="brand">❄ Cold Chain <span className="muted">{UNIT_ID}</span></div>
-        <button type="button" className="menu-button" onClick={() => setOpen(!open)} aria-label="Menu">☰</button>
+        <div className="brand">
+          <span className="brand-mark"><Snowflake size={20} strokeWidth={2.4} /></span>
+          <span>Cold Chain <span className="unit-id">{UNIT_ID}</span></span>
+        </div>
+        <div className="topbar-actions menu-button">
+          <ThemeToggle />
+          <button type="button" className="icon-button" onClick={() => setOpen(!open)} aria-label="Menu" aria-expanded={open}>
+            {open ? <X size={18} /> : <Menu size={18} />}
+          </button>
+        </div>
         <nav className={open ? 'open' : ''} onClick={() => setOpen(false)}>
-          {links.map(([to, label]) => (
-            <NavLink key={to} to={to} end={to === '/'}>{label}</NavLink>
+          {links.map(([to, label, Icon]) => (
+            <NavLink key={to} to={to} end={to === '/'}><Icon size={16} strokeWidth={2.2} />{label}</NavLink>
           ))}
           <span className="user">
-            {user?.email} <span className="role">{role}</span>
-            <button type="button" className="link" onClick={() => data.auth.signOut()}>Sign out</button>
+            <span className="email">{user?.email}</span>
+            <span className="role">{role}</span>
+            <span className="topbar-actions">
+              <span className="desktop-only"><ThemeToggle /></span>
+              <button type="button" className="icon-button" onClick={() => data.auth.signOut()} aria-label="Sign out" title="Sign out">
+                <LogOut size={17} />
+              </button>
+            </span>
           </span>
         </nav>
       </header>
-      <main>{children}</main>
+      {/* key: replays the fade-in each time the page changes */}
+      <main key={location.pathname} className="page-enter">{children}</main>
     </>
   );
 }

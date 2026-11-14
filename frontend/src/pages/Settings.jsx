@@ -1,6 +1,7 @@
 // Supervisor settings: alarm thresholds and delays (sent to the node through the back end) and
 // the SMS contacts (stored by the back end; phone numbers never live in the code).
 import { useEffect, useState } from 'react';
+import { MessageSquare, Plus, Save, Settings as SettingsIcon, SlidersHorizontal, Trash2 } from 'lucide-react';
 import { useData, useUnit } from '../context.jsx';
 import { UNIT_ID } from '../config.js';
 
@@ -47,7 +48,7 @@ function Thresholds() {
       </p>
       {result?.ok && <p className="success">{result.ok}</p>}
       {result?.error && <p className="error">{result.error}</p>}
-      <button type="submit" disabled={result?.busy}>{result?.busy ? 'Saving…' : 'Save thresholds'}</button>
+      <button type="submit" disabled={result?.busy}>{result?.busy ? <><span className="spinner" />Saving…</> : <><Save size={16} />Save thresholds</>}</button>
     </form>
   );
 }
@@ -102,7 +103,7 @@ function Contacts() {
                 <td>{c.name}</td>
                 <td>{c.phone}</td>
                 <td><button type="button" className="small secondary" onClick={() => toggle(c)}>{c.active === false ? 'off' : 'on'}</button></td>
-                <td><button type="button" className="small danger" onClick={() => remove(c)}>Remove</button></td>
+                <td><button type="button" className="small danger" onClick={() => remove(c)}><Trash2 size={14} />Remove</button></td>
               </tr>
             ))}
           </tbody>
@@ -117,7 +118,7 @@ function Contacts() {
         </div>
         {message?.ok && <p className="success">{message.ok}</p>}
         {message?.error && <p className="error">{message.error}</p>}
-        <button type="submit">Add contact</button>
+        <button type="submit"><Plus size={16} />Add contact</button>
       </form>
     </>
   );
@@ -128,10 +129,10 @@ export default function Settings() {
   if (role !== 'supervisor') return <p>Only supervisors can change settings.</p>;
   return (
     <>
-      <h1>Settings</h1>
-      <h2>Alarm thresholds</h2>
+      <h1 className="page-title"><SettingsIcon size={24} />Settings</h1>
+      <h2 className="page-title"><SlidersHorizontal size={18} />Alarm thresholds</h2>
       <Thresholds />
-      <h2>SMS contacts</h2>
+      <h2 className="page-title"><MessageSquare size={18} />SMS contacts</h2>
       <p className="muted">These numbers get the alert SMS (at most one per alarm type every 15 minutes) and the follow-up when it clears.</p>
       <Contacts />
     </>

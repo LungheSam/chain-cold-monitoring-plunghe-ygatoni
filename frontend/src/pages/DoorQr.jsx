@@ -1,5 +1,6 @@
 // Door QR code (supervisors): print it and stick it on the fridge. Scanning it opens /unlock/<unit>.
 import { QRCodeSVG } from 'qrcode.react';
+import { ExternalLink, Printer, QrCode } from 'lucide-react';
 import { UNIT_ID } from '../config.js';
 
 export default function DoorQr() {
@@ -7,7 +8,7 @@ export default function DoorQr() {
   const link = `${window.location.origin}/unlock/${UNIT_ID}`;
   return (
     <>
-      <h1 className="no-print">Door QR code</h1>
+      <h1 className="no-print page-title"><QrCode size={24} />Door QR code</h1>
       <p className="no-print muted">
         Print this page and stick the label on the fridge door. A supervisor scans it with a phone, signs
         in and presses “Unlock door”. The code is only a link and holds no password: anyone can scan it,
@@ -31,8 +32,8 @@ export default function DoorQr() {
       </div>
 
       <p className="no-print">
-        <button type="button" onClick={() => window.print()}>Print label</button>{' '}
-        <a className="button secondary" href={link}>Try the link</a>
+        <button type="button" onClick={() => window.print()}><Printer size={16} />Print label</button>{' '}
+        <a className="button secondary" href={link}><ExternalLink size={16} />Try the link</a>
       </p>
     </>
   );

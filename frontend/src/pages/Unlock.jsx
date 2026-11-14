@@ -4,8 +4,12 @@
 // The QR code holds no secret: it is only this link. Security comes from the sign-in and the role.
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
+import { ArrowLeft, CircleCheck, Lock, LockOpen, Siren, Snowflake, TriangleAlert, WifiOff } from 'lucide-react';
 import { useData, useSubscription, useUnit } from '../context.jsx';
 import { formatDateTime, formatTemp } from '../lib/format.js';
+import { ThemeToggle } from '../theme.jsx';
+
+const STATUS_ICON = { OK: CircleCheck, WARNING: TriangleAlert, ALARM: Siren, OFFLINE: WifiOff };
 
 const OPEN_S = 5;
 const WAIT_S = 10;   // 5 s open + 5 s rest for the solenoid (coldchain/access.py)
@@ -48,17 +52,22 @@ export default function Unlock() {
 
   const offline = !unit || unit.status === 'OFFLINE';
   const canUnlock = role === 'supervisor' && !offline && !busy && countdown === 0;
+  const UnitIcon = STATUS_ICON[unit?.status] || WifiOff;
 
   return (
     <div className="unlock-page">
-      <h1>❄ {unitId}</h1>
+      <div className="page-head">
+        <h1><span className="brand-mark"><Snowflake size={20} strokeWidth={2.4} /></span>{unitId}</h1>
+        <ThemeToggle />
+      </div>
 
-      {unit === undefined && <p className="muted">Loading…</p>}
+      {unit === undefined && <p className="loading"><span className="spinner" />Loading…</p>}
       {unit === null && <p className="error">No unit called “{unitId}”. Check the QR code.</p>}
       {unit && (
         <div className={`banner ${unit.status || 'OFFLINE'}`}>
-          <div className="status">{unit.status || 'OFFLINE'}</div>
+          <span className="banner-icon"><UnitIcon size={26} /></span>
           <div className="detail">
+            <div className="status">{unit.status || 'OFFLINE'}</div>
             Inside {formatTemp(unit.internalTemp)} · door {unit.doorOpen ? 'open' : 'closed'}
           </div>
         </div>
@@ -68,7 +77,8 @@ export default function Unlock() {
       {unit && offline && <p className="pill warn">{ERRORS[409]}</p>}
 
       <button type="button" className="unlock-button" onClick={unlock} disabled={!canUnlock}>
-        {busy ? 'Opening…' : countdown > 0 ? `Wait ${countdown} s` : '🔓 Unlock door'}
+        {busy ? <><span className="spinner" />Opening…</>
+          : countdown > 0 ? <><Lock size={24} />Wait {countdown} s</> : <><LockOpen size={26} />Unlock door</>}
       </button>
       {result && <p className={result.ok ? 'success' : 'error'}><strong>{result.text}</strong></p>}
       <p className="muted small-print">
@@ -88,7 +98,7 @@ export default function Unlock() {
         ))}
       </ul>
 
-      <p><Link to="/">Open the dashboard</Link></p>
+      <p><Link to="/" className="inline-icon"><ArrowLeft size={16} />Open the dashboard</Link></p>
     </div>
   );
 }

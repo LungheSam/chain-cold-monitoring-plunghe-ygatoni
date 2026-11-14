@@ -1,5 +1,6 @@
 // All events from the node, and the access log (keypad PIN and QR unlocks).
 import { useState } from 'react';
+import { KeyRound, ScrollText } from 'lucide-react';
 import { useData, useSubscription } from '../context.jsx';
 import { UNIT_ID } from '../config.js';
 import { accessDetails, eventDetails, eventLabel, formatDateTime } from '../lib/format.js';
@@ -26,7 +27,7 @@ export default function EventsLog() {
   return (
     <>
       <div className="toolbar">
-        <h1 className="grow" style={{ margin: 0 }}>Events</h1>
+        <h1 className="grow page-title" style={{ margin: 0 }}><ScrollText size={24} />Events</h1>
         <label style={{ margin: 0, minWidth: 180 }}>
           <select value={group} onChange={(e) => setGroup(e.target.value)} aria-label="Event type">
             {Object.keys(GROUPS).map((g) => <option key={g} value={g}>{g === 'all' ? 'All events' : g}</option>)}
@@ -50,7 +51,7 @@ export default function EventsLog() {
         </table>
       </div>
 
-      <h2>Access log</h2>
+      <h2 className="page-title"><KeyRound size={18} />Access log</h2>
       <div className="table-wrap">
         <table>
           <thead><tr><th>Time</th><th>Result</th><th>Method</th><th>Who</th><th>Details</th></tr></thead>
