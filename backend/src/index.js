@@ -46,7 +46,7 @@ const mqttOptions = {
   clean: true,
 };
 if (config.mqtt.caFile) mqttOptions.ca = readFileSync(config.mqtt.caFile);
-const client = mqtt.connect(config.mqtt.url, mqttOptions);
+let client;   // connected below, once the saved unit state is loaded
 
 const summaries = createSummaries({ store, log });
 const sms = createSmsNotifier({ store, sender, log });
@@ -58,6 +58,9 @@ const hub = createHub();
 const ingest = createIngest({ config, store, summaries, sms, bus, hub, log });
 for (const unitId of config.unitIds) await ingest.load(unitId);
 
+// Connect only now, and attach the handlers in the same step: if the connection finished while
+// Firestore was still loading, the 'connect' event would be missed and we would never subscribe.
+client = mqtt.connect(config.mqtt.url, mqttOptions);
 client.on('connect', () => {
   log.info(`MQTT connected to ${config.mqtt.url}`);
   client.subscribe(['coldchain/+/telemetry', 'coldchain/+/event', 'coldchain/+/status', 'coldchain/+/cmd/result'], { qos: 1 });
@@ -69,7 +72,15 @@ client.on('message', (topic, payload) => ingest.handleMessage(topic, payload));
 // ---- HTTP
 const auth = createAuth({ verifyIdToken, getUserRole: (uid) => store.getUserRole(uid), devAuth: config.devAuth, log });
 const app = createApp({ config, store, ingest, bus, hub, auth, log });
-const server = app.listen(config.port, () => log.info(`HTTP on port ${config.port}, TD at ${config.publicBaseUrl}/things/${config.unitIds[0]}`));
+// Express 5 calls this also when listening FAILS (port in use, or reserved by Windows), so check the error
+const server = app.listen(config.port, (err) => {
+  if (err) {
+    log.error(`Cannot listen on port ${config.port}: ${err.code || err.message}. Set another PORT in backend/.env `
+      + '(on Windows, see reserved ports with: netsh interface ipv4 show excludedportrange protocol=tcp)');
+    process.exit(1);
+  }
+  log.info(`HTTP on port ${config.port}, TD at ${config.publicBaseUrl}/things/${config.unitIds[0]}`);
+});
 
 // ---- timers
 const offlineTimer = setInterval(() => ingest.checkOffline().catch((err) => log.error(err)), 10000);
