@@ -66,30 +66,46 @@ function Layout({ children }) {
     <>
       <DemoBanner />
       <header className="topbar">
-        <div className="brand">
-          <span className="brand-mark"><Snowflake size={20} strokeWidth={2.4} /></span>
-          <span>Cold Chain <span className="unit-id">{UNIT_ID}</span></span>
+        {/* Row 1: logo on the left, account on the right */}
+        <div className="topbar-row">
+          <div className="brand">
+            <span className="brand-mark"><Snowflake size={20} strokeWidth={2.4} /></span>
+            <span>Cold Chain <span className="unit-id">{UNIT_ID}</span></span>
+          </div>
+          <div className="account desktop-only">
+            <span className="avatar" aria-hidden="true">{(user?.email || '?')[0].toUpperCase()}</span>
+            <span className="account-text">
+              <span className="email">{user?.email}</span>
+              <span className="role">{role}</span>
+            </span>
+            <ThemeToggle />
+            <button type="button" className="icon-button" onClick={() => data.auth.signOut()} aria-label="Sign out" title="Sign out">
+              <LogOut size={17} />
+            </button>
+          </div>
+          {/* Phones: theme + menu button instead */}
+          <div className="topbar-actions menu-button">
+            <ThemeToggle />
+            <button type="button" className="icon-button" onClick={() => setOpen(!open)} aria-label="Menu" aria-expanded={open}>
+              {open ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          </div>
         </div>
-        <div className="topbar-actions menu-button">
-          <ThemeToggle />
-          <button type="button" className="icon-button" onClick={() => setOpen(!open)} aria-label="Menu" aria-expanded={open}>
-            {open ? <X size={18} /> : <Menu size={18} />}
-          </button>
-        </div>
+
+        {/* Row 2: the menu (on phones it folds open under the button) */}
         <nav className={open ? 'open' : ''} onClick={() => setOpen(false)}>
-          {links.map(([to, label, Icon]) => (
-            <NavLink key={to} to={to} end={to === '/'}><Icon size={16} strokeWidth={2.2} />{label}</NavLink>
-          ))}
-          <span className="user">
+          <div className="nav-links">
+            {links.map(([to, label, Icon]) => (
+              <NavLink key={to} to={to} end={to === '/'}><Icon size={16} strokeWidth={2.2} />{label}</NavLink>
+            ))}
+          </div>
+          <div className="user mobile-only">
             <span className="email">{user?.email}</span>
             <span className="role">{role}</span>
-            <span className="topbar-actions">
-              <span className="desktop-only"><ThemeToggle /></span>
-              <button type="button" className="icon-button" onClick={() => data.auth.signOut()} aria-label="Sign out" title="Sign out">
-                <LogOut size={17} />
-              </button>
-            </span>
-          </span>
+            <button type="button" className="icon-button" onClick={() => data.auth.signOut()} aria-label="Sign out" title="Sign out">
+              <LogOut size={17} />
+            </button>
+          </div>
         </nav>
       </header>
       {/* key: replays the fade-in each time the page changes */}
