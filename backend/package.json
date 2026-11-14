@@ -14,7 +14,8 @@
     "set-role": "node --env-file-if-exists=.env scripts/set-role.js",
     "seed": "node --env-file-if-exists=.env scripts/seed.js",
     "e2e": "node e2e/run.mjs",
-    "broker": "node scripts/local-broker.mjs"
+    "broker": "node scripts/local-broker.mjs",
+    "check": "node scripts/check-setup.mjs"
   },
   "dependencies": {
     "ajv": "^8.20.0",
