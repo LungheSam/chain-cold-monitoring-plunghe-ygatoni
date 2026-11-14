@@ -34,7 +34,7 @@ enclosure fit check passed, 149 unit tests and 34 end-to-end checks passing.
 | `td-json.png` | `/things/cold-unit-01` in the browser (Firefox shows JSON nicely) | WoT Thing Description (course requirement) | Web of Things |
 | `td-sse.png` | `/things/cold-unit-01/events` in the browser while an event happens | WoT events | Web of Things |
 | `firestore-console.png` | Firebase console: `units/cold-unit-01` with its `readings`, `events`, `excursions` | the database (course requirement) | Data |
-| `hivemq-console.png` | HiveMQ Cloud: connected clients / traffic | the broker in use | Architecture |
+| `emqx-console.png` | EMQX Cloud: connected clients / usage | the broker in use | Architecture |
 | `railway-logs.png` | Railway log with "MQTT connected" and an event line | back end deployed | Deployment |
 | `sms-phone.png` | The alert SMS and the "back in range" SMS on a phone (hide the number) | SMS alerts | Alerts |
 | `unlock-phone.png` | `/unlock/cold-unit-01` on the phone after unlocking | QR unlock | Access |

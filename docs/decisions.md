@@ -23,15 +23,24 @@ Debian 13 "Trixie" (Python 3.13). Both are fine: same `/boot/firmware/config.txt
 gpiozero + lgpio on both. Keep whatever is on the SD card now. The code stays compatible with
 Python 3.11.
 
-## D3. MQTT broker for the demo: HiveMQ Cloud Serverless (free): decided
+## D3. MQTT broker for the demo: EMQX Cloud Serverless (free): decided (changed 14 Nov 2026)
 
-- Free, TLS on 8883 with a public CA certificate (no CA file to copy to the Pi), supports QoS 1,
-  retained messages and LWT, so nothing in our design changes. Nothing to host or keep awake.
-- The team confirmed that the campus network does not block HiveMQ Cloud.
-- Security is username/password over TLS (D11). Give the node and the back end **separate
-  credentials**, and if the HiveMQ console offers per-credential topic permissions, restrict them
-  like `broker/mosquitto/config/acl` (VERIFY in the console).
-- Mosquitto in Docker stays the development broker.
+First choice was HiveMQ Cloud Serverless, but HiveMQ closed it to new clusters on 30 Sep 2026 and
+retires it on 31 Dec 2026; only a paid plan (about $0.34/hour) is left. Replaced by **EMQX Cloud
+Serverless**:
+
+- Free quota per month: 1 million session minutes and 1 GB of traffic. We need about 130 000 session
+  minutes (3 clients connected all month) and roughly 60 MB. Create it with the **monthly spend limit
+  at 0**, so it can never be billed: it stops instead if the quota were used up.
+- TLS on 8883 with a public certificate (no CA file on the Pi), username/password per client (D11).
+  Nothing in our code changes: only `MQTT_URL` / `MQTT_HOST` and the credentials.
+- Give the node and the back end **separate credentials** (`cold-unit-01`, `backend`), and if the
+  console offers topic rules (authorization), restrict them to `coldchain/...` topics.
+- **VERIFY** on the created deployment: retained messages and Last Will work (if not, the back end
+  still marks the unit OFFLINE after 2 minutes without data), and that the campus network does not
+  block port 8883 to EMQX.
+- Fallback: Mosquitto on Railway with the configuration in `broker/` (needs Railway's TCP proxy and
+  our own certificate on the Pi).
 
 ## D4. Where the back end runs at the demo: Railway (paid Hobby plan): decided
 
@@ -114,7 +123,7 @@ emulator for development and seeding. Arithmetic in `data-model.md`.
 ## D11. Command security: broker passwords over TLS, no HMAC: decided
 
 Commands are protected by TLS plus a username/password per client. Only the back end has
-credentials allowed to publish on `cmd` (Mosquitto ACL in development; HiveMQ permissions if
+credentials allowed to publish on `cmd` (Mosquitto ACL in development; EMQX authorization rules if
 available, D3). Accepted risk: anyone who gets a broker password could publish `unlockDoor`, so
 broker passwords are never shared or put in the dashboard, and they are kept only in `.env` files
 and Railway variables.
@@ -179,7 +188,7 @@ failures are normal). Phase 2 must feed the engine one reading per *new* sensor 
 
 ## D18. Dashboard hosting: Railway, not Firebase Hosting: decided
 
-The team wants as few hosting services as possible: **HiveMQ Cloud** for MQTT and **Railway** for
+The team wants as few hosting services as possible: **EMQX Cloud** for MQTT and **Railway** for
 everything else. The dashboard is a second Railway service (`frontend/`, `npm start` runs
 `server.mjs`, a dependency-free static server with the single-page-app fallback, cache headers and
 `/health`). Firebase is still used for Firestore and Authentication, but not for hosting.

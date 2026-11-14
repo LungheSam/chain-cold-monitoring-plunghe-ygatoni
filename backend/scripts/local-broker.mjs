@@ -1,7 +1,7 @@
 // A small MQTT broker for testing on the laptop when Docker/Mosquitto is not available.
 //   cd backend && npm run broker          -> mqtt://localhost:1883
 // Plain MQTT (no TLS, no passwords) and only on this computer (127.0.0.1): for development only.
-// The real system uses HiveMQ Cloud with TLS and passwords (docs/decisions.md D3, D11).
+// The real system uses EMQX Cloud Serverless with TLS and passwords (docs/decisions.md D3, D11).
 import { createServer } from 'node:net';
 import { Aedes } from 'aedes';
 

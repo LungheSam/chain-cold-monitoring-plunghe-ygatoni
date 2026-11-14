@@ -1,15 +1,15 @@
-# Deployment: Railway (back end + dashboard) and HiveMQ Cloud (MQTT)
+# Deployment: Railway (back end + dashboard) and EMQX Cloud (MQTT)
 
 Two hosting services (decisions D3, D4, D18):
 
 | Part | Where | Address |
 |---|---|---|
-| MQTT broker | HiveMQ Cloud (free Serverless) | `mqtts://<cluster>.s1.eu.hivemq.cloud:8883` |
+| MQTT broker | EMQX Cloud Serverless (free) | `mqtts://<deployment>.<region>.emqxsl.com:8883` |
 | Back end | Railway service 1, root `backend/` | `https://<backend>.up.railway.app` |
 | Dashboard + unlock page | Railway service 2, root `frontend/` | `https://<dashboard>.up.railway.app` |
 | Database + sign-in | Firebase (Firestore + Authentication, no hosting) | console.firebase.google.com |
 
-Railway's menu names change from time to time: **VERIFY** each step against its dashboard.
+Railway's and EMQX's menu names change from time to time: **VERIFY** each step against their consoles.
 Keep every password and key in Railway's Variables only, never in the repository.
 
 ## 0. Before you start
@@ -19,17 +19,25 @@ Keep every password and key in Railway's Variables only, never in the repository
   published (`docs/firebase-setup.md`).
 - You have `backend/secrets/service-account.json` on your laptop.
 
-## 1. HiveMQ Cloud (the broker)
+## 1. EMQX Cloud Serverless (the broker)
 
-1. console.hivemq.cloud → create a **Serverless** cluster (free).
-2. **Access Management → Credentials**: create two users with strong passwords:
+(HiveMQ's free plan closed to new clusters on 30 Sep 2026, see D3.)
+
+1. Sign up at **emqx.com → Cloud** (EMQX Cloud console) and create a new deployment:
+   choose **Serverless**, any region near Europe, and keep the **monthly spend limit at 0**
+   (free quota only: it can never be billed).
+2. Open the deployment. On its **Overview** note the **connection address** (it ends in
+   `emqxsl.com`) and the **MQTT over TLS port 8883**. You do not need the CA file: the certificate
+   is public, so leave `MQTT_CA_FILE` empty.
+3. **Access Control → Authentication → Add**: create two users with strong, different passwords:
    - `backend` (for the Railway back end)
    - `cold-unit-01` (for the Pi)
-   If the console offers permissions per credential, give `cold-unit-01` publish on
-   `coldchain/cold-unit-01/#` and subscribe on `coldchain/cold-unit-01/cmd` only.
-3. Copy the cluster URL (**Overview → Cluster URL**, port 8883, TLS).
+   If **Authorization** (topic rules) is offered, allow both users only `coldchain/#`.
 4. Test it from the laptop first: in `backend/.env` and `edge/.env` switch to the commented
-   HiveMQ lines, then run `npm run dev` (backend) and the node. Both must log `MQTT connected`.
+   cloud-broker lines (address, port 8883, TLS on, the two users), then run `npm run dev`
+   (backend) and the node. Both must log `MQTT connected`. Then VERIFY that killing the node makes
+   the dashboard show OFFLINE within seconds (Last Will) and that the status survives a back-end
+   restart (retained message).
 
 ## 2. Railway service 1: the back end
 
@@ -51,8 +59,8 @@ Keep every password and key in Railway's Variables only, never in the repository
    | `STORE` | `firestore` |
    | `FIREBASE_PROJECT_ID` | your project id |
    | `FIREBASE_SERVICE_ACCOUNT` | the **whole content** of `service-account.json` (Railway holds no files) |
-   | `MQTT_URL` | `mqtts://<cluster>.s1.eu.hivemq.cloud:8883` |
-   | `MQTT_USERNAME` / `MQTT_PASSWORD` | the **`backend`** HiveMQ credential |
+   | `MQTT_URL` | `mqtts://<deployment>.<region>.emqxsl.com:8883` (the address from step 1) |
+   | `MQTT_USERNAME` / `MQTT_PASSWORD` | the **`backend`** EMQX user |
    | `AT_USERNAME` / `AT_API_KEY` | Africa's Talking (live account for the demo; empty key = SMS only in the log) |
 
    Do **not** set `PORT` (Railway sets it), `DEV_AUTH`, `GOOGLE_APPLICATION_CREDENTIALS` or `MQTT_CA_FILE`.
@@ -86,7 +94,7 @@ Keep every password and key in Railway's Variables only, never in the repository
 2. **Firebase console → Authentication → Settings → Authorized domains → Add domain**:
    `<dashboard>.up.railway.app`. Without it, sign-in on the deployed dashboard is refused.
 3. Open the dashboard on a phone, sign in as a supervisor, then run the node (laptop or Pi) with
-   `edge/.env` on HiveMQ and `cold-unit-01` credentials. Type `temp 9.5`: the dashboard turns
+   `edge/.env` on EMQX with the `cold-unit-01` user. Type `temp 9.5`: the dashboard turns
    WARNING then ALARM, and **Acknowledge** works (that call goes through Railway).
 4. **Door QR** page: print the label **from the deployed dashboard** (the code contains its address).
 
@@ -94,13 +102,14 @@ Keep every password and key in Railway's Variables only, never in the repository
 
 | Symptom | Likely cause |
 |---|---|
-| Back end log: `MQTT error: Not authorized` | wrong `MQTT_USERNAME`/`MQTT_PASSWORD`, or the node's credential used by the back end |
+| Back end log: `MQTT error: Not authorized` | wrong `MQTT_USERNAME`/`MQTT_PASSWORD`, or the node's user used by the back end |
 | Back end log: `Cannot listen on port` | `PORT` was set by hand: delete it |
 | Back end crashes at start mentioning credentials | `FIREBASE_SERVICE_ACCOUNT` is not the complete JSON (copy the whole file) |
 | Dashboard sign-in: "unauthorized domain" | step 4.2 missing |
 | Dashboard works, buttons fail with a CORS error | `CORS_ORIGIN` on the back end lacks the dashboard address (exact, with `https://`, no trailing `/`) |
 | Dashboard still calls `localhost:3000` / `8080` | `VITE_BACKEND_URL` set after the build: redeploy the dashboard |
-| Unit stays OFFLINE | the node is not connected to HiveMQ (check `edge/.env`) |
+| Unit stays OFFLINE | the node is not connected to EMQX (check `edge/.env`) |
+| Everything stops connecting one day | EMQX free quota used up (check Usage in the EMQX console; it resets monthly) |
 
 ## Notes
 
@@ -109,4 +118,4 @@ Keep every password and key in Railway's Variables only, never in the repository
 - Live values still show if the back end is down (the dashboard reads Firestore directly); only
   actions (acknowledge, thresholds, unlock), SMS and the Web Thing API need it.
 - Demo-day fallback: run the back end and dashboard on a laptop (`npm run dev` in both) with the
-  HiveMQ settings in `backend/.env`.
+  EMQX settings in `backend/.env`.

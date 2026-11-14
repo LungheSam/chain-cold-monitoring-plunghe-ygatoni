@@ -69,7 +69,8 @@ MQTT settings in `.env`:
   certificate from the laptop:
   `scp broker/mosquitto/certs/ca.crt <user>@coldchain-pi.local:~/coldchain/broker/mosquitto/certs/`
   (create that folder first). The laptop certificate must include its LAN IP (`./make-certs.sh <ip>`).
-- **HiveMQ Cloud**: `MQTT_HOST=<cluster>.hivemq.cloud`, `MQTT_PORT=8883`, `MQTT_CA_FILE=` (empty).
+- **EMQX Cloud Serverless**: `MQTT_HOST=<deployment>.<region>.emqxsl.com` (the address in the EMQX console), `MQTT_PORT=8883`,
+  `MQTT_TLS=1`, `MQTT_CA_FILE=` (empty), user `cold-unit-01`.
 
 ## 5. Bring-up checklist: one part at a time
 

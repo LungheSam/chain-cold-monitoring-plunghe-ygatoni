@@ -52,7 +52,7 @@ flowchart LR
 
 | Part | Where |
 |---|---|
-| Broker | HiveMQ Cloud Serverless (TLS 8883) |
+| Broker | EMQX Cloud Serverless (TLS 8883) |
 | Back end | Railway (Hobby plan, always on, one instance, HTTPS URL) |
 | Dashboard + unlock page | Railway (second service, `frontend/server.mjs`) |
 | Database / auth | Firebase Firestore + Authentication (Spark free plan) |

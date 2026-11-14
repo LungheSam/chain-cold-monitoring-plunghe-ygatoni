@@ -45,4 +45,4 @@ Windows Firewall must allow inbound TCP 8883 for the Pi to reach the laptop.
 
 ## Demo broker
 
-For Open Day we plan to use HiveMQ Cloud (free Serverless tier, TLS on 8883). See `docs/decisions.md` (D3).
+For Open Day we use EMQX Cloud Serverless (free tier, TLS on 8883). See `docs/decisions.md` (D3).

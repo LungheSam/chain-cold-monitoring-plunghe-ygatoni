@@ -27,7 +27,7 @@ class MqttLink:
         if username:
             self.client.username_pw_set(username, password)
         if use_tls:
-            # ca_file empty: use the system CA list (HiveMQ Cloud has a public certificate)
+            # ca_file empty: use the system CA list (EMQX Cloud has a public certificate)
             self.client.tls_set(ca_certs=ca_file or None)
         self.client.will_set(self.base + "/status", "offline", qos=1, retain=True)
         self.client.reconnect_delay_set(min_delay=1, max_delay=10)   # retry at least every 10 s
