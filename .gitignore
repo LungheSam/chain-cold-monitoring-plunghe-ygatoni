@@ -47,4 +47,6 @@ Thumbs.db
 .vscode/
 .idea/
 hardware/kicad/output/build.log
+# Claude Code files: stay on this laptop only
 .claude/
+CLAUDE.md
