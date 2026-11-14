@@ -35,7 +35,7 @@ See [docs/architecture.md](docs/architecture.md) for the full picture.
 | Node.js 24 LTS | backend, frontend | |
 | Docker Desktop | dev broker | or install Mosquitto natively |
 | Firebase CLI (`npm i -g firebase-tools`) + Java 21 | rules, hosting, emulators | the emulator needs Java |
-| FreeCAD 1.1, KiCad 10, Fritzing | hardware | installed; FreeCAD and KiCad are not on PATH (see CLAUDE.md) |
+| FreeCAD 1.1, KiCad 10, Fritzing | hardware | installed; FreeCAD and KiCad are not on PATH (paths in docs/decisions.md) |
 
 ## Running each part
 
