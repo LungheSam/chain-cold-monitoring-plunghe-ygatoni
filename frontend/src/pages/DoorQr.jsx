@@ -4,7 +4,7 @@ import { ExternalLink, Printer, QrCode } from 'lucide-react';
 import { UNIT_ID } from '../config.js';
 
 export default function DoorQr() {
-  // The link uses the address the dashboard is served from (the Firebase Hosting URL once deployed)
+  // The link uses the address the dashboard is served from (the Railway URL once deployed)
   const link = `${window.location.origin}/unlock/${UNIT_ID}`;
   return (
     <>

@@ -55,7 +55,8 @@ curl -X POST -H "Authorization: Bearer dev-supervisor" http://localhost:3000/thi
    npm run set-role -- samuel@example.org supervisor
    npm run set-role -- yves@example.org supervisor
    ```
-6. Deploy the rules and indexes (needs the Firebase CLI, `npm install -g firebase-tools`):
+6. Publish the rules: either paste `firebase/firestore.rules` in the console (Firestore → Rules,
+   see `docs/firebase-setup.md`), or deploy them with the Firebase CLI (`npm install -g firebase-tools`):
    ```bash
    cd ../firebase && cp .firebaserc.example .firebaserc   # put your project id in it
    firebase login

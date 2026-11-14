@@ -38,7 +38,7 @@ Python 3.11.
 - The team will pay for Railway. On the Hobby plan (VERIFY the current price on railway.com) a
   service runs continuously and does not sleep, so the MQTT subscriber stays connected.
   Leave Railway's optional "serverless / app sleeping" setting **off** for this service.
-- Railway gives an HTTPS URL (`*.up.railway.app`), which the dashboard on Firebase Hosting needs.
+- Railway gives an HTTPS URL (`*.up.railway.app`), which the dashboard needs.
 - No secret files on Railway: the Firebase service-account JSON goes in an environment variable
   (`FIREBASE_SERVICE_ACCOUNT`, the whole JSON), and every other secret is a Railway variable.
 - Run only **one** instance (replicas = 1). Two instances would both send each SMS and both answer
@@ -176,6 +176,20 @@ one glitch does not raise an alarm. A bad value is never counted as out-of-range
 is a fault after 5 failed reads in a row (the kernel driver often returns `EIO`, so single
 failures are normal). Phase 2 must feed the engine one reading per *new* sensor sample, so that
 "3 in a row" means 3 samples, not 3 passes of the 0.1 s main loop.
+
+## D18. Dashboard hosting: Railway, not Firebase Hosting: decided
+
+The team wants as few hosting services as possible: **HiveMQ Cloud** for MQTT and **Railway** for
+everything else. The dashboard is a second Railway service (`frontend/`, `npm start` runs
+`server.mjs`, a dependency-free static server with the single-page-app fallback, cache headers and
+`/health`). Firebase is still used for Firestore and Authentication, but not for hosting.
+
+- Cost: a small static server on the Hobby plan (VERIFY usage after a week on the Railway dashboard).
+- One extra step: the dashboard's Railway domain must be added to Firebase Authentication's
+  authorized domains (Firebase Hosting domains were added automatically).
+- The `VITE_*` variables are built into the dashboard, so changing one needs a redeploy.
+- A broker on Railway was considered and rejected: MQTT is not HTTP, so it would need Railway's TCP
+  proxy (random port, possibly blocked on campus) and our own TLS certificate copied to the Pi.
 
 ## Things to measure (VERIFY list)
 

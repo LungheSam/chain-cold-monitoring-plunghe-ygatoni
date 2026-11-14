@@ -21,7 +21,7 @@ unlock page.
 | `broker/` | Dev Mosquitto in Docker, TLS 8883 + passwords + ACL | Mosquitto 2 |
 | `backend/` | MQTT ingest, Firestore, WoT TD 1.1 + HTTP + SSE, commands, SMS, auth | Node 24, Express, ES modules, mqtt, firebase-admin, africastalking, ajv, node:test |
 | `frontend/` | Dashboard + `/unlock/:unitId` page | React + Vite, React Router, Firebase JS SDK, react-chartjs-2, qrcode.react |
-| `firebase/` | `firestore.rules`, `firestore.indexes.json`, hosting config (build goes to `firebase/public`) | |
+| `firebase/` | `firestore.rules`, `firestore.indexes.json`, emulator config (no hosting: the dashboard runs on Railway) | |
 | `hardware/` | `fritzing/`, `freecad/enclosure.py` (parametric, headless), `kicad/` carrier PCB | |
 | `docs/` | architecture, wiring, mqtt-topics, thing-description, data-model, **decisions** | |
 
@@ -32,7 +32,8 @@ unlock page.
 - Commands: `{id, action, params, expiresAt}`, 30 s expiry, de-duplicated by id. Security = TLS +
   broker passwords only (no HMAC, D11).
 - Deployment: HiveMQ Cloud broker, back end on **Railway** (paid, always on, 1 instance, service
-  account JSON in the `FIREBASE_SERVICE_ACCOUNT` variable), dashboard on Firebase Hosting, Africa's
+  account JSON in the `FIREBASE_SERVICE_ACCOUNT` variable), dashboard as a second Railway service
+  (`frontend/server.mjs`, D18), Africa's
   Talking with the default sender ID.
 - Clock: NTP only, no RTC. Messages carry `timeSynced`, and unsynced queued messages are re-timed
   from monotonic time once NTP syncs (D6).

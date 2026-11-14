@@ -18,7 +18,7 @@ actions (acknowledge, thresholds) and the SMS contacts. Light theme, works on a 
 The QR code is only a link and holds no secret. Unlocking needs a signed-in supervisor (the back end
 checks the Firebase token and role), and the node logs every unlock with the user's email. Viewers
 (for example nurses) open the fridge with their keypad PIN. Print the label from the deployed
-dashboard, not from localhost, so the code points to the Firebase Hosting address.
+dashboard, not from localhost, so the code points to the dashboard's Railway address.
 
 ## Run
 
@@ -43,16 +43,23 @@ npm run dev                   # http://localhost:5173 (the back end must allow t
 To have something to look at before the hardware runs, seed the real database once from
 `backend/`: `npm run seed` (about 3 300 writes; the free tier allows 20 000 per day).
 
-## Deploy (Firebase Hosting)
+## Deploy (Railway)
+
+The dashboard runs as a second Railway service (decision D18). Railway runs `npm run build`
+(writes `dist/`) and then `npm start`, which starts `server.mjs`: a small server with no
+dependencies that serves `dist/`, sends every app address (`/history`, `/unlock/...`) to
+`index.html`, caches the hashed assets for a year but never `index.html`, and answers `/health`.
+
+To try exactly what Railway runs:
 
 ```bash
-npm run build                          # writes ../firebase/public
-cd ../firebase
-firebase deploy --only hosting
+npm run build
+npm start              # http://localhost:4173
 ```
 
-Then add `https://<project-id>.web.app` to the back end's `CORS_ORIGIN`, and set
-`VITE_BACKEND_URL` to the Railway URL before building.
+On Railway: Root Directory `frontend`, the `VITE_*` variables (they are built into the app, so
+redeploy after changing one), then add the dashboard's domain to Firebase Authentication's
+authorized domains and to the back end's `CORS_ORIGIN`. Full steps: `docs/deploy-railway.md`.
 
 ## Code layout
 

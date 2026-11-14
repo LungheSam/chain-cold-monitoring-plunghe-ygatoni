@@ -29,7 +29,6 @@ dist/
 coverage/
 *.log
 .firebase/
-firebase/public/
 firebase/*-debug.log
 
 # ---------- CAD ----------
@@ -48,3 +47,4 @@ Thumbs.db
 .vscode/
 .idea/
 hardware/kicad/output/build.log
+.claude/

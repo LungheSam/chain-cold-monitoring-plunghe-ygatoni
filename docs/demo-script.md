@@ -37,7 +37,7 @@ happens in front of the audience. Say once that a real fridge uses 5 min / 2 min
 
 **The day before**
 - [ ] `PROFILE=demo` in `edge/.env` on the Pi; `sudo systemctl restart coldchain-node`
-- [ ] Back end on Railway: `/health` answers; `CORS_ORIGIN` includes the Firebase Hosting URL
+- [ ] Both Railway services up: back end `/health` answers; its `CORS_ORIGIN` includes the dashboard's Railway URL
 - [ ] SMS contacts set in Settings (both phones); Africa's Talking **live** account with credit
       (the sandbox does not send to real phones). Send one test alert and time it.
 - [ ] Analytics history: `npm run seed` in `backend/` against the real project (about 3 300 writes)

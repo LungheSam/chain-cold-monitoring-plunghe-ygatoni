@@ -54,7 +54,7 @@ flowchart LR
 |---|---|
 | Broker | HiveMQ Cloud Serverless (TLS 8883) |
 | Back end | Railway (Hobby plan, always on, one instance, HTTPS URL) |
-| Dashboard + unlock page | Firebase Hosting |
+| Dashboard + unlock page | Railway (second service, `frontend/server.mjs`) |
 | Database / auth | Firebase Firestore + Authentication (Spark free plan) |
 | SMS | Africa's Talking live account, default sender ID |
 | Development | Mosquitto in Docker, Firebase emulators, AT sandbox |

@@ -1,14 +1,18 @@
 {
   "name": "coldchain-dashboard",
-  "version": "0.1.0",
   "private": true,
+  "version": "0.1.0",
   "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "dev": "vite",
     "demo": "vite --mode demo",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "start": "node server.mjs"
   },
   "dependencies": {
     "@fontsource/montserrat": "^5.3.0",
