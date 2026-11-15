@@ -142,7 +142,10 @@ Use a BSS138 level-shifter module between the Pi and the 5 V PCF8574 backpack. R
 
 A single TEC1-12706 in a cool box may struggle to bring it below 8 °C and hold it there in a warm
 room. Test this week. Plan B for the demo: frozen gel packs in the box, with the Peltier optional.
-Either way:
+Update 16 Nov: the school may not get the Peltier in time, so the "fridge" is either an insulated
+cool box with gel packs or a small mini fridge (it cools by itself; its mains cable is not touched).
+A 12 V adapter is needed in every case, because the power-cut detection watches it.
+If the Peltier is used:
 
 - the 12 V adapter must be rated for the Peltier plus fan: about 6 A for the TEC1-12706 at 12 V
   (VERIFY on the adapter label);

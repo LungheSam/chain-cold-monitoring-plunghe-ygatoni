@@ -46,12 +46,18 @@ Tick the **Have** column as parts arrive.
 
 | Qty | Part | Spec / notes | Have |
 |---|---|---|---|
-| 1 | Insulated cool box | small polystyrene or picnic cool box (the vaccine "fridge") | |
-| 1 | Peltier module TEC1-12706 kit | with hot-side heat sink and fan; about 6 A at 12 V (D14). Never run it without the heat sink and fan | |
-| 1 | 12 V adapter | rated for the Peltier plus fan: at least 6 A (VERIFY the label) | |
-| 1 | Inline fuse holder + fuse | blade fuse just above the adapter rating, e.g. 7.5 A for a 6 A adapter | |
+| 1 | The "fridge": an insulated cool box **or** a small (mini) fridge | whichever is easier to get. A mini fridge cools by itself (no Peltier needed); its own mains cable stays untouched (nobody works on 230 V) | |
+| 2–4 | Frozen gel packs | keep a cool box below 8 °C without a Peltier (plan B in D14) | |
+| 1 | 12 V adapter | **always needed**: the "mains present" sense input watches it (unplugging it is the power-cut demo). Without a Peltier any 12 V adapter of 1 A or more is enough | |
 | 2 | DC barrel jacks | for the 12 V and the 5 V lock adapters | |
-| 2–4 | Frozen gel packs | plan B if the Peltier cannot hold below 8 °C (D14) | |
+
+**Only if the school provides the Peltier in time** (not known yet, D14):
+
+| Qty | Part | Spec / notes | Have |
+|---|---|---|---|
+| 1 | Peltier module TEC1-12706 kit | with hot-side heat sink and fan; about 6 A at 12 V. Never run it without the heat sink and fan | |
+| — | 12 V adapter (instead of the small one) | rated for the Peltier plus fan: at least 6 A (VERIFY the label) | |
+| 1 | Inline fuse holder + fuse | blade fuse just above the adapter rating, e.g. 7.5 A for a 6 A adapter | |
 
 ## 6. Small parts for the breadboard build
 
@@ -77,14 +83,16 @@ Buying a resistor assortment (E12, 1/4 W) covers all the resistors.
 
 | Qty | Part | Spec / notes | Have |
 |---|---|---|---|
+**No screws** (team decision): every part is printed to snap, clip or stick together.
+
+| Qty | Part | Spec / notes | Have |
+|---|---|---|---|
 | ~0.3 kg | PETG filament | the 7 parts are about 180 cm³ of plastic; one 1 kg spool is plenty | |
-| 4 | PG7 cable glands | probe, reed, 12 V sense, DHT22 pod (thread 12.5 mm: VERIFY on the datasheet) | |
-| 1 | Rubber grommet | for a 10 mm hole (lock adapter + solenoid wires; VERIFY) | |
-| 8 | M3 self-tapping screws, about 8 mm | 4 for the lid, 4 for the LCD | |
-| 4 | M2.5 self-tapping screws, about 6 mm | Pi on its standoffs | |
-| 4 | M3 screws + nuts | solenoid on its plate (VERIFY the lock's hole size) | |
-| ~12 | Wood/fixing screws, 4 mm | wall tabs, DHT22 pod, reed and magnet holders, lock plate, strike | |
-| — | Zip ties (small), double-sided foam tape | reed/magnet cradles, level shifter, wiring | |
+| 4 | PG7 cable glands (optional) | tidy, sealed cable entries (they tighten by hand, no tools). Simple printed holes work too | |
+| 1 | Rubber grommet (optional) | for the lock adapter and solenoid wires | |
+| 1 roll | Strong double-sided mounting tape (foam, outdoor grade) | sticks the DHT22 pod, reed and magnet holders, lock plate and strike to the box/door | |
+| — | Small zip ties | hold the reed, magnet and cables in their cradles | |
+| — | Hot glue (optional) | holds the solenoid on its plate if tape is not strong enough (VERIFY with the real lock) | |
 
 ## 8. Carrier PCB (optional, not needed for the demo)
 
