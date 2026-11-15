@@ -25,12 +25,19 @@ not fit the printer bed, has a feature under 1.2 mm, or if the electronics would
 
 | Part | Print size (mm) | Print orientation | Notes |
 |---|---|---|---|
-| `box` | 190 × 107 × 42 | opening up | Pi 4 on 4 standoffs (ports to the front), USB-C opening in the front wall, 4 × PG7 glands in the back wall (probe, reed, 12 V sense, DHT22 pod), grommet in the right wall (lock adapter + solenoid wires), vent slots in both ends, 2 fixing tabs at the back, M3 lid bosses in the corners |
-| `lid` | 190 × 95 × 9 | outer face on the bed | LCD window + 4 standoffs, red and green LED holes, buzzer grille + holder ring, keypad outline groove and ribbon slot, lip that locates it in the box |
+| `box` | 190 × 107 × 42 | opening up | Pi 4 on 4 standoffs with push-fit pins (ports to the front), 4 windows for the lid hooks, USB-C opening in the front wall, 4 × PG7 glands in the back wall (probe, reed, 12 V sense, DHT22 pod), grommet in the right wall (lock adapter + solenoid wires), vent slots in both ends, 2 fixing tabs at the back |
+| `lid` | 190 × 95 × 14 | outer face on the bed | 4 snap hooks, LCD window + 4 standoffs with push-fit pins, red and green LED holes, buzzer grille + holder ring, keypad outline groove and ribbon slot, lip that locates it in the box |
 | `dht22_pod` | 25 × 59 × 12 | open back on the bed | louvred slots on the front and sides, fixing flanges, cable notch; mount it out of sunlight and away from the fridge's warm exhaust |
-| `reed_holder`, `magnet_holder` | 52 × 27 × 9 | flat | cradle for the body, zip-tie slots, 2 screw holes; `REED_SPACER` / `MAGNET_SPACER` raise one so both line up |
+| `reed_holder`, `magnet_holder` | 52 × 27 × 9 | flat | cradle for the body, zip-tie slots, flat back for tape; `REED_SPACER` / `MAGNET_SPACER` raise one so both line up |
 | `solenoid_plate` | 70 × 50 × 4 | flat | slotted holes so the lock slides ±3 mm to meet the strike |
 | `strike` | 34 × 18 × 22 | base on the bed | window the lock bolt drops into |
+| `fit_test` | 46 × 26 × 20 | flat | **print first**: one Pi pin, one LCD pin, a piece of wall with a hook window |
+| `fit_test_clip` | 13 × 26 × 14 | flat face down | **print first**: one snap hook, to click into the `fit_test` window |
+
+**No screws.** The lid clicks on with 4 printed hooks on its short sides, and the Pi and the LCD sit
+on printed push-fit pins through their mounting holes. To open the box, push the 4 hook noses in
+through their windows (a fingernail or a pen) and lift the lid. The brackets, pod, lock plate and
+strike stick on with double-sided mounting tape.
 
 Print: PETG (better than PLA near condensation and the Pi's heat), 0.2 mm layers, 4 perimeters,
 20 % infill. No supports. The box (190 mm long) needs a 220 × 220 mm bed.
@@ -65,7 +72,11 @@ ones are below. A wrong value here means a part that does not fit.
 3. Solenoid lock: mounting holes, bolt size, and bolt height.
 4. Reed switch and magnet bodies.
 5. PG7 gland thread and the grommet hole size (from their datasheets).
-6. Your screws: M3 and M2.5 self-tapping pilot holes (print a test piece first).
+6. **Fit test** (about 15 minutes of printing): print `fit_test` and `fit_test_clip`, then
+   - press the Pi onto the Pi pin and the LCD onto the LCD pin: snug, not forced. Too tight: lower
+     `PI_PIN_D` / `LCD_PIN_D` by 0.1 mm; too loose: raise them;
+   - push the clip down onto the wall: it must click into the window and hold, and come out when
+     you press the nose. Too hard or it breaks: lower `HOOK_DEPTH` or `HOOK_T`; too loose: raise `HOOK_DEPTH`.
+   Then run the script again and print the real parts.
 
-Print the lid first (it is a much smaller print than the box): it checks the LCD, LEDs, buzzer and
-keypad fits before you spend the material and time on the box.
+Order: fit test → lid (checks the LCD, LEDs, buzzer, keypad and hooks) → box.

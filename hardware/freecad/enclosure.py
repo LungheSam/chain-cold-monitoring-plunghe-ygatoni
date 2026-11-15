@@ -12,9 +12,16 @@ It writes into exports/:
 Every dimension is a constant below: change it and run again. Dimensions that do not come from a
 datasheet we trust are marked VERIFY: measure the real part with calipers before printing.
 
+No screws anywhere (team decision): the lid snaps on with 4 printed hooks, and the Pi and the LCD
+sit on printed push-fit pins. Everything comes apart again by hand. The brackets are stuck on with
+double-sided mounting tape.
+
 Parts:
-    box             main box: Pi 4 + carrier, LCD side, cable glands, grommet, vents, wall tabs
-    lid             LCD window, 2 LED holes, buzzer grille + holder, keypad ribbon slot, keypad outline
+    box             main box: Pi 4 on pin standoffs, hook windows, cable glands, grommet, vents, wall tabs
+    lid             snap hooks, LCD window + pin standoffs, 2 LED holes, buzzer grille + holder,
+                    keypad ribbon slot, keypad outline
+    fit_test        small test print: one Pi pin, one LCD pin and a piece of wall with a hook window
+    fit_test_clip   small test print: one snap hook, to try in the fit_test window
     dht22_pod       vented pod that holds the DHT22 outside the fridge (ambient air)
     reed_holder     cradle for the reed switch (on the fridge body)
     magnet_holder   cradle for the magnet (on the door)
@@ -49,19 +56,27 @@ BED = (220, 220, 250)  # printer build volume (Ender-3 class). VERIFY for the pr
 # ---- main box (inside dimensions)
 IN_X, IN_Y, IN_Z = 185.0, 90.0, 40.0
 CORNER_R = 3.0        # rounded outside vertical edges
-BOSS_D = 8.0          # lid screw bosses in the 4 inside corners
-BOSS_AT = 5.0         # boss centre, from both inside walls
-SCREW_PILOT = 2.5     # M3 self-tapping screw into plastic. VERIFY with your screws (2.5-2.6 mm)
-SCREW_CLEAR = 3.4     # M3 clearance hole
-SCREW_DEPTH = 12.0    # pilot hole depth in the bosses
 LIP_W, LIP_H = 1.2, 3.0   # lid lip that locates the lid inside the box opening
+SMALL_HOLE_D = 3.4    # optional holes in the brackets (zip tie); the brackets are stuck on with tape
+
+# ---- snap hooks that hold the lid (no screws). Each is a flexible arm under the lid with a nose that
+#      clicks into a window in the box wall. To open: push the noses in through the windows and lift.
+#      Print fit_test + fit_test_clip first; if the click is too loose or too hard, change HOOK_DEPTH.
+HOOKS = [("left", 15.0), ("left", 75.0), ("right", 15.0), ("right", 75.0)]   # short wall, inside y of the hook
+HOOK_W = 10.0         # arm width
+HOOK_T = 1.8          # arm thickness: thinner = softer click
+HOOK_L = 12.0         # arm length below the lid
+HOOK_DEPTH = 1.2      # how far the nose reaches into the window. VERIFY with the fit test
+NOSE_H = 2.4          # nose height (flat catch on top, 45 degree lead-in underneath)
 
 # ---- Raspberry Pi 4 (official Raspberry Pi 4 Model B mechanical drawing). VERIFY with calipers.
 PI_BOARD = (85.0, 56.0, 1.4)
 PI_HOLES = [(3.5, 3.5), (61.5, 3.5), (3.5, 52.5), (61.5, 52.5)]   # 58 x 49 pattern, M2.5
 PI_AT = (10.0, 1.5)   # board corner from the left and front inside walls (ports face the front)
 STANDOFF_H, STANDOFF_D = 6.0, 6.0
-STANDOFF_PILOT = 2.2  # M2.5 self-tapping. VERIFY with your screws
+PI_HOLE_D = 2.7       # the Pi's mounting holes (drawing)
+PI_PIN_D = 2.4        # printed push-fit pin through each hole. VERIFY with the fit test (snug, not forced)
+PIN_ABOVE = 1.6       # how far a pin sticks out above the board
 USBC_FROM_LEFT = 11.2  # USB-C centre from the board's left edge (3.5 + 7.7 on the drawing). VERIFY
 USBC_ABOVE_BOARD = 1.6  # USB-C centre above the board top (receptacle about 3.2 mm high). VERIFY
 USBC_CUT = (13.0, 8.0)  # opening for the plug's moulding. VERIFY with your power cable's plug
@@ -71,6 +86,9 @@ LCD_PCB = (80.0, 36.0)
 LCD_HOLES = (75.0, 31.0)  # M3 hole pattern
 LCD_BEZEL = (71.2, 24.2)  # metal frame around the glass; the lid window is this + clearance
 LCD_BEZEL_H = 7.0         # frame height above the PCB = standoff length under the lid
+LCD_HOLE_D = 3.2          # the module's mounting holes (for M3)
+LCD_PIN_D = 2.9           # printed push-fit pin through each hole: VERIFY with the fit test
+LCD_PCB_T = 1.6           # module PCB thickness
 LCD_CENTER = (142.5, 47.0)  # from the inside front-left corner of the box
 LCD_DEPTH = 21.0          # lid to the bottom of the backpack and its pins. VERIFY
 
@@ -140,6 +158,7 @@ FEATURES = {                   # checked against MIN_FEATURE
     "wall": WALL, "lid lip": LIP_W, "grille hole": GRILLE_HOLE_D, "buzzer ring wall": RING_WALL,
     "vent slot": VENT_W, "keypad groove": GROOVE_W, "pod slot": POD_SLOT_W,
     "grille web": GRILLE_PITCH - GRILLE_HOLE_D,
+    "hook arm": HOOK_T, "hook nose": HOOK_DEPTH, "Pi pin": PI_PIN_D, "LCD pin": LCD_PIN_D,
 }
 
 
@@ -189,9 +208,44 @@ def rounded_block(dx, dy, dz, r):
     return b.makeFillet(r, vertical)
 
 
-def boss_centers():
-    """Lid screw positions (box coordinates)."""
-    return [(ix(x), iy(y)) for x in (BOSS_AT, IN_X - BOSS_AT) for y in (BOSS_AT, IN_Y - BOSS_AT)]
+def pin(x, y, z, d, h, up=True):
+    """Push-fit pin with a pointed tip, so it finds the hole. Grows up (+z) or down (-z) from z."""
+    tip = min(0.6, h / 3)
+    body = h - tip
+    if up:
+        return cyl(x, y, z, d, body + 0.01).fuse(Part.makeCone(d / 2, d / 2 - 0.4, tip, V(x, y, z + body)))
+    return cyl(x, y, z - body, d, body + 0.01).fuse(
+        Part.makeCone(d / 2, d / 2 - 0.4, tip, V(x, y, z - body), V(0, 0, -1)))
+
+
+def hook_shape(face_x, out, y_mid):
+    """Snap hook hanging below z = 0. face_x = the arm's face towards the wall; out = -1 if the wall
+    is on the -x side, +1 if on the +x side. The nose has a flat catch on top and a 45 degree
+    lead-in underneath, so the lid clicks on when pushed down."""
+    y0 = y_mid - HOOK_W / 2
+    arm_x = face_x if out == -1 else face_x - HOOK_T
+    arm = box(arm_x, y0, -HOOK_L, HOOK_T, HOOK_W, HOOK_L + 0.01)
+    start = face_x - out * 0.01                     # overlap the arm a little, so they fuse into one solid
+    tip = face_x + out * HOOK_DEPTH
+    pts = [V(start, y0, -HOOK_L), V(tip, y0, -HOOK_L + HOOK_DEPTH), V(tip, y0, -HOOK_L + NOSE_H),
+           V(start, y0, -HOOK_L + NOSE_H), V(start, y0, -HOOK_L)]
+    nose = Part.Face(Part.makePolygon(pts)).extrude(V(0, HOOK_W, 0))
+    return arm.fuse(nose)
+
+
+def window_shape(wall_x0, y_mid, wall_top):
+    """Window through a wall (from x = wall_x0, WALL thick) where a hook nose clicks in.
+    wall_top = height of the top edge of the wall, where the lid rests."""
+    z0 = wall_top - HOOK_L - 0.5
+    z1 = wall_top - HOOK_L + NOSE_H + 0.2           # the nose catches under this edge
+    return box(wall_x0 - 1, y_mid - HOOK_W / 2 - CLEAR, z0, WALL + 2, HOOK_W + 2 * CLEAR, z1 - z0)
+
+
+def hook_place(side):
+    """(face_x, out, wall_x0) of a lid hook on the left or right short wall, box coordinates."""
+    if side == "left":
+        return WALL + CLEAR, -1, 0.0
+    return OUT_X - WALL - CLEAR, 1, OUT_X - WALL
 
 
 # ======================================================================== main box
@@ -200,17 +254,12 @@ def make_box():
     shell = rounded_block(OUT_X, OUT_Y, OUT_Z, CORNER_R)
     shell = shell.cut(box(WALL, WALL, WALL, IN_X, IN_Y, IN_Z + 1))
 
-    # Corner bosses for the lid screws: a cylinder plus a block joining it to both walls
+    # Pi standoffs, each with a push-fit pin that goes through the board's mounting hole
     adds = []
-    for cx, cy in boss_centers():
-        adds.append(cyl(cx, cy, WALL, BOSS_D, IN_Z))
-        x0 = WALL if cx < OUT_X / 2 else cx
-        y0 = WALL if cy < OUT_Y / 2 else cy
-        adds.append(box(x0, y0, WALL, BOSS_AT, BOSS_AT, IN_Z))
-
-    # Pi standoffs
     for hx, hy in PI_HOLES:
-        adds.append(cyl(ix(PI_AT[0] + hx), iy(PI_AT[1] + hy), WALL, STANDOFF_D, STANDOFF_H))
+        x, y = ix(PI_AT[0] + hx), iy(PI_AT[1] + hy)
+        adds.append(cyl(x, y, WALL, STANDOFF_D, STANDOFF_H))
+        adds.append(pin(x, y, WALL + STANDOFF_H - 0.01, PI_PIN_D, PI_BOARD[2] + PIN_ABOVE))
 
     # Fixing tabs on the back, flush with the bottom
     for tx in TAB_X:
@@ -218,10 +267,10 @@ def make_box():
     shell = fuse_all(shell, adds)
 
     holes = []
-    for cx, cy in boss_centers():
-        holes.append(cyl(cx, cy, OUT_Z - SCREW_DEPTH, SCREW_PILOT, SCREW_DEPTH + 1))
-    for hx, hy in PI_HOLES:
-        holes.append(cyl(ix(PI_AT[0] + hx), iy(PI_AT[1] + hy), WALL + 0.6, STANDOFF_PILOT, STANDOFF_H))
+    # Windows for the lid's snap hooks
+    for side, y in HOOKS:
+        _, _, wall_x0 = hook_place(side)
+        holes.append(window_shape(wall_x0, iy(y), OUT_Z))
     for tx in TAB_X:
         holes.append(cyl(ix(tx), OUT_Y + TAB[1] / 2, -1, TAB_HOLE_D, TAB[2] + 2))
 
@@ -252,22 +301,25 @@ def make_box():
 def make_lid():
     plate = rounded_block(OUT_X, OUT_Y, LID_T, CORNER_R)
 
-    # Lip that drops into the box opening, notched around the corner bosses
+    # Lip that drops into the box opening and keeps the lid in place sideways
     lip = box(WALL + CLEAR, WALL + CLEAR, -LIP_H, IN_X - 2 * CLEAR, IN_Y - 2 * CLEAR, LIP_H)
     lip = lip.cut(box(WALL + CLEAR + LIP_W, WALL + CLEAR + LIP_W, -LIP_H - 1,
                       IN_X - 2 * (CLEAR + LIP_W), IN_Y - 2 * (CLEAR + LIP_W), LIP_H + 2))
-    notch = BOSS_AT + BOSS_D / 2 + CLEAR       # square notch in each corner, clear of the boss
-    for cx, cy in boss_centers():
-        nx = WALL if cx < OUT_X / 2 else OUT_X - WALL - notch
-        ny = WALL if cy < OUT_Y / 2 else OUT_Y - WALL - notch
-        lip = lip.cut(box(nx, ny, -LIP_H - 1, notch, notch, LIP_H + 2))
-    adds = [lip]
+    # The snap hooks, with a gap cut in the lip around each one so the arm can flex freely
+    adds = []
+    for side, y in HOOKS:
+        face_x, out, _ = hook_place(side)
+        lip_x0 = WALL if out == -1 else OUT_X - WALL - CLEAR - LIP_W
+        lip = lip.cut(box(lip_x0 - 0.5, iy(y) - HOOK_W / 2 - 1.0, -LIP_H - 1, CLEAR + LIP_W + 1.0, HOOK_W + 2.0, LIP_H + 1))
+        adds.append(hook_shape(face_x, out, iy(y)))
+    adds.append(lip)
 
-    # LCD standoffs (the bezel then touches the lid's inside face)
+    # LCD standoffs (the bezel then touches the lid's inside face), each with a push-fit pin
     lcx, lcy = ix(LCD_CENTER[0]), iy(LCD_CENTER[1])
     lcd_holes = [(lcx + sx * LCD_HOLES[0] / 2, lcy + sy * LCD_HOLES[1] / 2) for sx in (-1, 1) for sy in (-1, 1)]
     for hx, hy in lcd_holes:
         adds.append(cyl(hx, hy, -LCD_BEZEL_H, STANDOFF_D, LCD_BEZEL_H + 0.01))
+        adds.append(pin(hx, hy, -LCD_BEZEL_H + 0.01, LCD_PIN_D, LCD_PCB_T + PIN_ABOVE, up=False))
 
     # Buzzer holder ring
     bx, by = ix(BUZZER_AT[0]), iy(BUZZER_AT[1])
@@ -277,10 +329,6 @@ def make_lid():
     lid = fuse_all(plate, adds)
 
     holes = []
-    for cx, cy in boss_centers():
-        holes.append(cyl(cx, cy, -1, SCREW_CLEAR, LID_T + 2))
-    for hx, hy in lcd_holes:
-        holes.append(cyl(hx, hy, -LCD_BEZEL_H - 1, SCREW_PILOT, LCD_BEZEL_H + 0.5))
     # LCD window
     wx, wy = LCD_BEZEL[0] + 2 * CLEAR, LCD_BEZEL[1] + 2 * CLEAR
     holes.append(box(lcx - wx / 2, lcy - wy / 2, -1, wx, wy, LID_T + 2))
@@ -313,8 +361,8 @@ def make_pod():
     pod = box(0, 0, 0, ox, oy, oz).cut(box(WALL, WALL, -1, POD_IN[0], POD_IN[1], POD_IN[2] + 1))
     # Fixing flanges at both ends, flat on the wall
     pod = pod.fuse(box(0, -POD_FLANGE, 0, ox, oy + 2 * POD_FLANGE, WALL))
-    holes = [cyl(ox / 2, -POD_FLANGE / 2, -1, SCREW_CLEAR, WALL + 2),
-             cyl(ox / 2, oy + POD_FLANGE / 2, -1, SCREW_CLEAR, WALL + 2)]
+    holes = [cyl(ox / 2, -POD_FLANGE / 2, -1, SMALL_HOLE_D, WALL + 2),
+             cyl(ox / 2, oy + POD_FLANGE / 2, -1, SMALL_HOLE_D, WALL + 2)]
     # Louvre slots across the front face and down both sides, so air moves through
     n_slots = 5
     pitch = POD_IN[1] / (n_slots + 1)
@@ -330,7 +378,8 @@ def make_pod():
 # ======================================================================== reed switch / magnet cradles
 
 def make_cradle(body, spacer):
-    """Base with two side rails that hold the body, zip-tie slots and two screw holes."""
+    """Base with two side rails that hold the body, zip-tie slots and two optional holes.
+    Stuck on the fridge with double-sided tape."""
     length, width, height = body
     channel = width + 2 * CLEAR
     rail = WALL
@@ -345,7 +394,7 @@ def make_cradle(body, spacer):
     x0 = (base_l - rail_l) / 2
     part = part.fuse(box(x0, cy - channel / 2 - rail, base_t - 0.01, rail_l, rail, rail_h))
     part = part.fuse(box(x0, cy + channel / 2, base_t - 0.01, rail_l, rail, rail_h))
-    holes = [cyl(6.0, cy, -1, SCREW_CLEAR, base_t + 2), cyl(base_l - 6.0, cy, -1, SCREW_CLEAR, base_t + 2)]
+    holes = [cyl(6.0, cy, -1, SMALL_HOLE_D, base_t + 2), cyl(base_l - 6.0, cy, -1, SMALL_HOLE_D, base_t + 2)]
     tie_y = channel / 2 + rail + tie_gap
     for side in (-1, 1):
         y = cy + side * (tie_y + POD_SLOT_W / 2) - POD_SLOT_W / 2
@@ -362,7 +411,7 @@ def make_solenoid_plate():
     for sx in (-1, 1):
         for sy in (-1, 1):   # slotted holes: the lock can slide +-3 mm to line up with the strike
             holes.append(stadium(px / 2 + sx * SOL_HOLES[0] / 2, py / 2 + sy * SOL_HOLES[1] / 2, -1,
-                                 SCREW_CLEAR + 6.0, SCREW_CLEAR, pt + 2))
+                                 SMALL_HOLE_D + 6.0, SMALL_HOLE_D, pt + 2))
         holes.append(cyl(px / 2 + sx * (px / 2 - 6.0), py / 2, -1, FIX_HOLE_D, pt + 2))
     return cut_all(plate, holes)
 
@@ -378,11 +427,36 @@ def make_strike():
     return cut_all(part, holes)
 
 
+# ======================================================================== fit test (print this first)
+
+def make_fit_test():
+    """One Pi standoff with its pin, one LCD standoff with its pin (as printed in the lid), and a piece
+    of wall with a hook window at the same height below its top as in the box."""
+    plate = box(0, 0, 0, 46, 26, WALL)
+    adds = [cyl(8, 8, WALL - 0.01, STANDOFF_D, STANDOFF_H),
+            pin(8, 8, WALL + STANDOFF_H - 0.02, PI_PIN_D, PI_BOARD[2] + PIN_ABOVE),
+            cyl(8, 19, WALL - 0.01, STANDOFF_D, LCD_BEZEL_H),
+            pin(8, 19, WALL + LCD_BEZEL_H - 0.02, LCD_PIN_D, LCD_PCB_T + PIN_ABOVE)]
+    wall_top = WALL + HOOK_L + 6.0
+    wall_x0 = 30.0
+    adds.append(box(wall_x0, 0, WALL - 0.01, WALL, 26, wall_top - WALL + 0.01))
+    part = fuse_all(plate, adds)
+    return part.cut(window_shape(wall_x0, 13.0, wall_top))
+
+
+def make_fit_test_clip():
+    """A small piece of lid with one snap hook (built as assembled, like the lid). It rests on the
+    fit_test wall, with its arm on the inner side of the wall."""
+    wall_in = WALL                                   # the wall is x 0..WALL, its inner face at x = WALL
+    plate = box(-2.0, 0, 0, WALL + CLEAR + HOOK_T + 8.0, 26, LID_T)
+    return plate.fuse(hook_shape(wall_in + CLEAR, -1, 13.0))
+
+
 # ======================================================================== checks, export, render
 
 def to_print_orientation(name, shape):
     s = shape.copy()
-    if name == "lid":                      # outer face on the bed: smooth top, no supports
+    if name in ("lid", "fit_test_clip"):    # outer face on the bed: smooth top, no supports
         s.rotate(V(0, 0, 0), V(1, 0, 0), 180)
     bb = s.BoundBox
     s.translate(V(-bb.XMin, -bb.YMin, -bb.ZMin))
@@ -414,11 +488,17 @@ def fit_check(box_shape, lid_on_box):
     """Stand-in blocks for the Pi stack, LCD module and buzzer must not hit the box, the lid or
     each other. Returns report lines; raises an error on a collision."""
     lcx, lcy = ix(LCD_CENTER[0]), iy(LCD_CENTER[1])
+    pi_block = box(ix(PI_AT[0]), iy(PI_AT[1]), WALL + STANDOFF_H, PI_BOARD[0] + PI_PORT_OVERHANG, PI_BOARD[1], PI_STACK_H)
+    for hx, hy in PI_HOLES:            # the real board has holes where the pins go through
+        pi_block = pi_block.cut(cyl(ix(PI_AT[0] + hx), iy(PI_AT[1] + hy), 0, PI_HOLE_D, OUT_Z))
+    lcd_block = box(lcx - LCD_PCB[0] / 2, lcy - LCD_PCB[1] / 2, OUT_Z - LCD_DEPTH, LCD_PCB[0], LCD_PCB[1],
+                    LCD_DEPTH - LCD_BEZEL_H)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            lcd_block = lcd_block.cut(cyl(lcx + sx * LCD_HOLES[0] / 2, lcy + sy * LCD_HOLES[1] / 2, 0, LCD_HOLE_D, OUT_Z + 5))
     blocks = {
-        "Pi + carrier": box(ix(PI_AT[0]), iy(PI_AT[1]), WALL + STANDOFF_H,
-                            PI_BOARD[0] + PI_PORT_OVERHANG, PI_BOARD[1], PI_STACK_H),
-        "LCD module": box(lcx - LCD_PCB[0] / 2, lcy - LCD_PCB[1] / 2, OUT_Z - LCD_DEPTH,
-                          LCD_PCB[0], LCD_PCB[1], LCD_DEPTH - LCD_BEZEL_H),
+        "Pi + carrier": pi_block,
+        "LCD module": lcd_block,
         "buzzer": cyl(ix(BUZZER_AT[0]), iy(BUZZER_AT[1]), OUT_Z - BUZZER_H, BUZZER_D, BUZZER_H),
     }
     solids = dict(blocks, box=box_shape, lid=lid_on_box)
@@ -429,8 +509,13 @@ def fit_check(box_shape, lid_on_box):
                 overlap = solids[a].common(solids[b]).Volume
                 if overlap > 0.01:
                     raise ValueError("fit check: %s hits %s (%.1f mm3)" % (a, b, overlap))
+    # The closed lid (hooks clicked into their windows) must not overlap the box anywhere
+    overlap = box_shape.common(lid_on_box).Volume
+    if overlap > 0.01:
+        raise ValueError("fit check: the closed lid overlaps the box (%.1f mm3): check the hooks" % overlap)
     pi_top = WALL + STANDOFF_H + PI_STACK_H
-    return ["Fit check passed: Pi + carrier, LCD module and buzzer clear the box, the lid and each other.",
+    return ["Fit check passed: Pi + carrier, LCD module and buzzer clear the box, the lid and each other;",
+            "the closed lid with its 4 hooks in their windows does not overlap the box.",
             "Space left above the Pi stack: %.1f mm. Below the LCD module: %.1f mm."
             % (OUT_Z - pi_top, OUT_Z - LCD_DEPTH - WALL)]
 
@@ -455,7 +540,8 @@ def export(parts, assembled):
 
 COLORS = {"box": (0.80, 0.84, 0.90), "lid": (0.55, 0.70, 0.88), "dht22_pod": (0.95, 0.85, 0.55),
           "reed_holder": (0.70, 0.88, 0.70), "magnet_holder": (0.95, 0.70, 0.70),
-          "solenoid_plate": (0.80, 0.75, 0.95), "strike": (0.85, 0.85, 0.85)}
+          "solenoid_plate": (0.80, 0.75, 0.95), "strike": (0.85, 0.85, 0.85),
+          "fit_test": (0.75, 0.85, 0.95), "fit_test_clip": (0.55, 0.70, 0.88)}
 
 
 def render(shapes, path, title, elev=28, azim=-60):
@@ -526,6 +612,8 @@ def main():
         "magnet_holder": make_cradle(MAGNET_BODY, MAGNET_SPACER),
         "solenoid_plate": make_solenoid_plate(),
         "strike": make_strike(),
+        "fit_test": make_fit_test(),
+        "fit_test_clip": make_fit_test_clip(),
     }
     printed = {name: to_print_orientation(name, s) for name, s in built.items()}
     report = check(printed)
@@ -540,6 +628,8 @@ def main():
         "magnet_holder": moved(built["magnet_holder"], 60, -45, 0),
         "solenoid_plate": moved(built["solenoid_plate"], 120, -70, 0),
         "strike": moved(built["strike"], OUT_X + 10, -60, 0),
+        "fit_test": moved(built["fit_test"], -60, 0, 0),
+        "fit_test_clip": moved(built["fit_test_clip"], -60 + 30.0, 0, WALL + HOOK_L + 6.0),
     }
     print("Exporting STEP, STL and FCStd to", OUT)
     export(printed, assembled)
@@ -555,6 +645,10 @@ def main():
     small = [(n, moved(printed[n], x, 0, 0)) for n, x in
              (("dht22_pod", 0), ("reed_holder", 40), ("magnet_holder", 100), ("solenoid_plate", 160), ("strike", 245))]
     render(small, os.path.join(png, "small_parts.png"), "Pod, reed + magnet holders, lock plate, strike (as printed)")
+    test = [("fit_test", built["fit_test"]), ("fit_test_clip", moved(built["fit_test_clip"], 30.0, 0, WALL + HOOK_L + 6.0))]
+    render(test, os.path.join(png, "fit_test.png"), "Fit test: Pi pin, LCD pin, clip clicked into its window", azim=-130)
+    render([("box", built["box"]), ("lid", moved(built["lid"], 0, 0, OUT_Z + 25))],
+           os.path.join(png, "hooks.png"), "Lid hooks above their windows (left wall)", elev=12, azim=-150)
 
     verify = verify_list()
     with open(os.path.join(OUT, "report.txt"), "w", encoding="utf-8") as f:

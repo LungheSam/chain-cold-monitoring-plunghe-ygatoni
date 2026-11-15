@@ -83,7 +83,8 @@ Buying a resistor assortment (E12, 1/4 W) covers all the resistors.
 
 | Qty | Part | Spec / notes | Have |
 |---|---|---|---|
-**No screws** (team decision): every part is printed to snap, clip or stick together.
+**No screws** (team decision): the lid clicks on with printed snap hooks, the Pi and LCD sit on printed
+push-fit pins, and the brackets stick on with tape. Print the small fit test first (`hardware/freecad/README.md`).
 
 | Qty | Part | Spec / notes | Have |
 |---|---|---|---|
