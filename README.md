@@ -38,7 +38,7 @@ Why these choices (and why not HiveMQ or Firebase Hosting): [docs/decisions.md](
 | [firebase/](firebase/) | Firestore security rules and indexes |
 | [broker/](broker/) | Mosquitto configuration (Docker), kept as a fallback broker |
 | [hardware/](hardware/) | Fritzing wiring list, FreeCAD enclosure, KiCad carrier PCB |
-| [docs/](docs/) | Architecture, wiring, MQTT topics, Thing Description, data model, decisions, [test plan](docs/test-plan.md), [demo script](docs/demo-script.md), [report pictures](docs/report-media.md) |
+| [docs/](docs/) | Architecture, wiring, MQTT topics, Thing Description, data model, decisions, [components list](docs/components.md), [test plan](docs/test-plan.md), [demo script](docs/demo-script.md), [report pictures](docs/report-media.md) |
 
 ## Prerequisites
 
