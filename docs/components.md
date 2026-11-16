@@ -51,13 +51,14 @@ Tick the **Have** column as parts arrive.
 | 1 | 12 V adapter | **always needed**: the "mains present" sense input watches it (unplugging it is the power-cut demo). Without a Peltier any 12 V adapter of 1 A or more is enough | |
 | 2 | DC barrel jacks | for the 12 V and the 5 V lock adapters | |
 
-**Only if the school provides the Peltier in time** (not known yet, D14):
+**Peltier cooling** (will be bought, D14; the full request with specifications is `docs/purchase-request.md`):
 
 | Qty | Part | Spec / notes | Have |
 |---|---|---|---|
-| 1 | Peltier module TEC1-12706 kit | with hot-side heat sink and fan; about 6 A at 12 V. Never run it without the heat sink and fan | |
-| — | 12 V adapter (instead of the small one) | rated for the Peltier plus fan: at least 6 A (VERIFY the label) | |
-| 1 | Inline fuse holder + fuse | blade fuse just above the adapter rating, e.g. 7.5 A for a 6 A adapter | |
+| 1 | Peltier cooling kit (TEC1-12706) | complete kit: module + hot-side heat sink and 90 mm fan + cold-side heat sink and 40 mm fan, 12 V, about 6 A max. Mounted through the lid, cold side down | |
+| — | 12 V 10 A supply (instead of the small one) | certified, enclosed | |
+| 1 | Inline fuse holder + 10 A fuses | on the 12 V line, 16 AWG wire | |
+| 1 | W1209 thermostat module | 12 V, NTC probe, relay at least 10 A: switches the Peltier on/off around a set point | |
 
 ## 6. Small parts for the breadboard build
 

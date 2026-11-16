@@ -145,11 +145,17 @@ room. Test this week. Plan B for the demo: frozen gel packs in the box, with the
 Update 16 Nov: the school may not get the Peltier in time, so the "fridge" is either an insulated
 cool box with gel packs or a small mini fridge (it cools by itself; its mains cable is not touched).
 A 12 V adapter is needed in every case, because the power-cut detection watches it.
-If the Peltier is used:
+Update 16 Nov (later): the Peltier will be bought, as a **complete kit** (TEC1-12706 with hot-side
+heat sink + 90 mm fan and cold-side heat sink + 40 mm fan, 12 V, about 6 A maximum). It is mounted
+**through the box lid, cold side pointing down** (cold air sinks, so the whole box cools); the team
+designs a 3D-printed frame for it once the kit's dimensions are measured. A **W1209 12 V thermostat
+module** switches it on and off around a set point, like a real fridge thermostat, so the cooling
+control stays separate from the monitoring and the Peltier current never goes through the Pi.
+Purchase list: `docs/purchase-request.md`.
+With the Peltier:
 
-- the 12 V adapter must be rated for the Peltier plus fan: about 6 A for the TEC1-12706 at 12 V
-  (VERIFY on the adapter label);
-- fuse just above the adapter rating (e.g. a 7.5 A blade fuse for a 6 A adapter) on the 12 V line;
+- 12 V supply of **10 A** (the kit draws up to about 6 A; a 6 A supply would run at its limit);
+- **10 A blade fuse** on the 12 V line, 16 AWG wire;
 - never power the Peltier without its hot-side heat sink and fan.
 
 ## D15. Africa's Talking SMS: decided
