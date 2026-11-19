@@ -42,7 +42,7 @@ Review notes:
   3.3 V and GND as a clamp.
 - The 12 V adapter's negative must be connected to the Pi's GND (common ground), otherwise the
   divider reading means nothing.
-- The Peltier's ~5 A runs only on the 12 V wiring (adapter → fuse → Peltier/fan). Only the
+- The Peltier kit's 8–10 A runs only on the 12 V wiring (supply → 15 A fuse → car relay → Peltier and fans). Only the
   divider's ~1 mA comes onto our board.
 
 ## LCD backpack (PCF8574) and 5 V pull-ups

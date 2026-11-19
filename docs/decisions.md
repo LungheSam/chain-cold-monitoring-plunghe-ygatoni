@@ -152,6 +152,12 @@ designs a 3D-printed frame for it once the kit's dimensions are measured. A **W1
 module** switches it on and off around a set point, like a real fridge thermostat, so the cooling
 control stays separate from the monitoring and the Peltier current never goes through the Pi.
 Purchase list: `docs/purchase-request.md`.
+Update 20 Nov: the shop kit we found (Nyereka Tech, 120 W, RWF 41,500) is the **double version**:
+it looks like two Peltier modules, each with its cold-side heat sink and fan, and draws about
+**8–10 A**. So the 12 V side becomes: **12 V 30 A** supply (Nyereka has no 20 A model), **15 A**
+blade fuse, **14 AWG** wire, and a **12 V 30–40 A car relay** that switches the Peltier, with the
+W1209 switching only the relay coil (its own relay is about 10 A, too close to the load). A 1N4007
+goes across the car relay coil. The bullet points below are the original single-kit values.
 With the Peltier:
 
 - 12 V supply of **10 A** (the kit draws up to about 6 A; a 6 A supply would run at its limit);

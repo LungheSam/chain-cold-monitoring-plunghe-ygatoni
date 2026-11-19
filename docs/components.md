@@ -39,7 +39,7 @@ Tick the **Have** column as parts arrive.
 |---|---|---|---|
 | 1 | Solenoid cabinet lock, 5 V | about 1 A (VERIFY by measuring); check its duty cycle | |
 | 1 | 5 V 2 A adapter | lock power only, never from the Pi's 5 V pins | |
-| 1 | IRLB8721 N-MOSFET (TO-220) | logic-level, for the breadboard (not IRLZ44N) | |
+| 1 | 5 V relay module | switches on with a HIGH input (VERIFY, or set its H/L jumper to H): the lock must stay off while the Pi starts. Replaces the logic-level MOSFET, which is not sold locally | |
 | 1 | 1N4007 diode | across the solenoid (flyback) | |
 
 ## 5. Cooling and 12 V supply (the "fridge")
@@ -55,10 +55,11 @@ Tick the **Have** column as parts arrive.
 
 | Qty | Part | Spec / notes | Have |
 |---|---|---|---|
-| 1 | Peltier cooling kit (TEC1-12706) | complete kit: module + hot-side heat sink and 90 mm fan + cold-side heat sink and 40 mm fan, 12 V, about 6 A max. Mounted through the lid, cold side down | |
-| — | 12 V 10 A supply (instead of the small one) | certified, enclosed | |
-| 1 | Inline fuse holder + 10 A fuses | on the 12 V line, 16 AWG wire | |
-| 1 | W1209 thermostat module | 12 V, NTC probe, relay at least 10 A: switches the Peltier on/off around a set point | |
+| 1 | Peltier cooling kit, 120 W | Nyereka Tech kit: Peltier modules (the photo shows two) with cold-side heat sinks and fans and a large hot-side heat sink and fan, 12 V, about 8–10 A. Mounted through the lid, cold side down. Measure it before designing the lid frame | |
+| — | 12 V 30 A supply (instead of the small one) | certified, enclosed (a 10 A supply would run at its limit) | |
+| 1 | Inline blade fuse holder + 15 A fuses | on the 12 V line, 14 AWG wire | |
+| 1 | W1209 thermostat module | 12 V, NTC probe: switches the car relay's coil around a set point | |
+| 1 | Car relay 12 V, 30–40 A, with socket | switches the Peltier current (the W1209's own relay is only about 10 A); 1N4007 across its coil | |
 
 ## 6. Small parts for the breadboard build
 
