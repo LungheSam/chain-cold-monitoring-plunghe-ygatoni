@@ -13,7 +13,7 @@
 \usepackage{booktabs}
 \usepackage{xcolor}
 \usepackage{tikz}
-\usetikzlibrary{positioning,arrows.meta,fit,backgrounds}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc}
 \usepackage{fontawesome5}
 \usepackage{dirtree}
 \usepackage{balance}
@@ -35,6 +35,17 @@
   {\leftskip=1.2em\rightskip=1.2em\small\itshape\color{noteRed}#1\par}%
   \medskip\fi}
 \newcommand{\degC}{\,\textdegree{}C}
+% Styles for Fig. 1 (scenario)
+\tikzset{
+  item/.style={align=center, inner sep=2pt},
+  ico/.style={font=\LARGE, text=iconC},
+  arr/.style={line width=0.8pt, rounded corners=4pt, -{Stealth[length=2.2mm, width=1.7mm]}},
+  both/.style={line width=0.8pt, rounded corners=4pt, {Stealth[length=2.2mm, width=1.7mm]}-{Stealth[length=2.2mm, width=1.7mm]}},
+  lbl/.style={font=\scriptsize, fill=white, inner sep=1.5pt, rounded corners=1pt},
+  badge/.style={circle, draw=iconC, line width=0.7pt, fill=white, inner sep=2.5pt, font=\normalsize, text=iconC},
+  zone/.style={draw, dashed, line width=0.6pt, rounded corners=6pt, inner sep=8pt},
+}
+
 % no stretched gaps between paragraphs when a column is not full
 \raggedbottom
 
@@ -92,16 +103,9 @@ quick response (QR) code on the door.
 \begin{figure*}[!t]
 \centering
 \resizebox{\textwidth}{!}{%
-\begin{tikzpicture}[font=\footnotesize,
-  item/.style={align=center, inner sep=2pt},
-  ico/.style={font=\LARGE, text=iconC},
-  link/.style={line width=0.7pt, -{Stealth[length=2mm, width=1.6mm]}},
-  both/.style={line width=0.7pt, {Stealth[length=2mm, width=1.6mm]}-{Stealth[length=2mm, width=1.6mm]}},
-  lbl/.style={font=\scriptsize, fill=white, inner sep=1.5pt},
-  zone/.style={draw, dashed, line width=0.6pt, rounded corners=6pt, inner sep=8pt}]
+\begin{tikzpicture}[font=\footnotesize]
 
   % ---------------- health centre store
-  % fridge drawn as a box with a door handle
   \draw[line width=0.8pt, rounded corners=3pt, fill=edgeC] (-0.9,-1.5) rectangle (0.9,1.5);
   \draw[line width=0.6pt] (-0.9,0.55) -- (0.9,0.55);
   \draw[line width=1.6pt, line cap=round] (0.65,0.85) -- (0.65,1.25);
@@ -111,55 +115,47 @@ quick response (QR) code on the door.
   \node[item, font=\scriptsize] at (-0.1,-1.15) {2--8\degC};
   \coordinate (fridge) at (0,-1.5);
   \coordinate (fridgeE) at (0.9,0);
-
   \node[item] (pi) at (3.4,0) {{\Huge\color{iconC}\faMicrochip}\\[3pt]\textbf{Edge node}\\Raspberry Pi 4\\[2pt]
     {\color{iconC}\faThermometerHalf\ \faDoorOpen\ \faBolt}\quad{\color{iconC}\faBell\ \faKey}};
   \draw[both] (fridgeE) -- node[lbl, above=2pt]{probe, door} (pi.west);
-
   \node[item] (psu) at (3.4,-2.6) {{\color{iconC}\Large\faPlug}\ \ 12 V supply};
-  \draw[link] (psu.west) -| node[lbl, pos=0.75, left=2pt]{cooling} (0,-1.5);
-  \draw[link, dashed] (psu.north) -- node[lbl, right=2pt]{sensed} (pi.south);
-
+  \draw[arr] (psu.west) -| node[lbl, pos=0.75, left=2pt]{cooling} (0,-1.5);
+  \draw[arr, dashed] (psu.north) -- node[lbl, right=2pt]{sensed} (pi.south);
   \node[item] (nurse) at (0.0,2.75) {{\color{iconC}\Large\faUserNurse}\ \ Nurse: PIN or QR};
-  \draw[link] (nurse.east) -| (pi.north);
-
+  \draw[arr] (nurse.east) -| (pi.north);
   \node[item] (router) at (6.3,0) {{\Huge\color{iconC}\faWifi}\\[3pt]Wi-Fi router};
   \draw[both] (pi.east) -- (router.west);
-
   \begin{scope}[on background layer]
-    \node[zone, fill=edgeC!35, fit={(fridge)(pi)(psu)(nurse)(router)(-0.9,1.5)}, label={[font=\small\bfseries]above:Health centre store}] (store) {};
+    \node[zone, fill=edgeC!35, fit={(fridge)(pi)(psu)(nurse)(router)(-0.9,1.5)},
+      label={[font=\small\bfseries]above:Health centre store}] (store) {};
   \end{scope}
-
-  % ---------------- cloud
-  \node[item] (broker) at (9.4,1.3) {{\Huge\color{iconC}\faExchange*}\\[3pt]\textbf{MQTT broker}\\EMQX Cloud};
-  \node[item] (backend) at (12.0,1.3) {{\Huge\color{iconC}\faServer}\\[3pt]\textbf{Back end}\\Web Thing (TD)\\Railway};
-  \node[item] (db) at (12.0,-1.8) {{\Huge\color{iconC}\faDatabase}\\[3pt]\textbf{Firestore}\\database};
-  \draw[both] (router.east) -- node[lbl, above=2pt, sloped]{MQTT over TLS} (broker.west);
+  % ---------------- cloud: broker and back end on one straight line with the router
+  \node[item] (broker) at (9.7,0) {{\Huge\color{iconC}\faExchange*}\\[3pt]\textbf{MQTT broker}\\EMQX Cloud};
+  \node[item] (backend) at (12.7,0) {{\Huge\color{iconC}\faServer}\\[3pt]\textbf{Back end}\\Web Thing (TD)\\Railway};
+  \draw[both] (router.east) -- node[lbl, above=3pt]{MQTT over TLS} (broker.west);
   \draw[both] (broker.east) -- (backend.west);
-  \draw[link] (backend.south) -- (db.north);
+\node[item] (db) at (9.7,-2.35) {{\Huge\color{iconC}\faDatabase}\\[3pt]\textbf{Firestore}\\database};
+\draw[arr] ($(backend.south)+(-0.35,0)$) |- (db.east);
 
-  \begin{scope}[on background layer]
-    \node[zone, fill=cloudC!45, fit=(broker)(backend)(db), label={[font=\small\bfseries]above:Cloud}] (cloud) {};
-  \end{scope}
+\node[item] (smsgw) at (15.4,-1.55) {{\LARGE\color{iconC}\faSms}\ \ \textbf{SMS gateway}\\Africa's Talking};
+\node[item] (tggw)  at (15.4,-2.95) {{\LARGE\color{iconC}\faTelegram}\ \ \textbf{Telegram}\\Bot API};
+\coordinate (S) at ($(backend.south)+(0.35,0)$);
+\draw[arr] (S) |- (smsgw.west);
+\draw[arr] (S) |- (tggw.west);
+\node[item] (laptop) at (19.4,0) {{\Huge\color{iconC}\faLaptop}\\[3pt]\textbf{Dashboard}\\any browser};
+\draw[both] (backend.east) -- node[lbl, above=3pt]{HTTPS} (laptop.west);
+\node[item] (phone) at (19.4,-2.25) {{\Huge\color{iconC}\faMobile*}\\[3pt]\textbf{Supervisor's}\\\textbf{phone}};
+\draw[arr] (smsgw.east) -- node[lbl, above=2pt]{SMS} (smsgw.east -| phone.west);
+\draw[arr] (tggw.east) -- node[lbl, below=2pt]{Telegram} (tggw.east -| phone.west);
 
-  % ---------------- supervisor
-  \node[item] (laptop) at (16.8,1.6) {{\Huge\color{iconC}\faLaptop}\\[3pt]\textbf{Dashboard}\\any browser};
-  \node[item] (sms) at (15.8,-0.9) {{\LARGE\color{iconC}\faSms}\ \ SMS};
-  \node[item] (tg) at (15.8,-2.1) {{\LARGE\color{iconC}\faTelegram}\ \ Telegram};
-  \node[item] (phone) at (18.3,-1.5) {{\Huge\color{iconC}\faMobile*}\\[3pt]\textbf{Supervisor's}\\\textbf{phone}};
-  \draw[both] (backend.east) -- node[lbl, above=2pt]{HTTPS} (laptop.west);
-  \draw[link] (backend.east) to[out=-20, in=180] (sms.west);
-  \draw[link] (backend.east) to[out=-40, in=180] (tg.west);
-  \draw[link] (sms.east) -- (phone.west);
-  \draw[link] (tg.east) -- (phone.west);
-
-  \begin{scope}[on background layer]
-    \node[zone, fill=appC!45, fit=(laptop)(sms)(tg)(phone), label={[font=\small\bfseries]above:Supervisor}] (user) {};
-  \end{scope}
+\begin{scope}[on background layer]
+  \node[zone, fill=cloudC!45, fit={(broker)(backend)(db)(smsgw)(tggw)}, label={[font=\small\bfseries]above:Cloud}] {};
+  \node[zone, fill=appC!45, fit={(laptop)(phone)}, label={[font=\small\bfseries]above:Supervisor}] {};
+\end{scope}
 \end{tikzpicture}}
 \caption{Project scenario. The edge node on the vaccine fridge reads the probe, the door and the
 12~V supply, raises the local alarm, and talks to the cloud through the store's Wi-Fi. The back end
-serves the dashboard and alerts the supervisor's phone by SMS and Telegram.}
+serves the dashboard and sends alerts to the supervisor's phone through the SMS gateway and the Telegram Bot API.}
 \label{fig:scenario}
 \end{figure*}
 
