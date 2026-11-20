@@ -31,7 +31,7 @@ Keep every password and key in Railway's Variables only, never in the repository
    is public, so leave `MQTT_CA_FILE` empty.
 3. **Access Control → Authentication → Add**: create two users with strong, different passwords:
    - `backend` (for the Railway back end)
-   - `cold-unit-01` (for the Pi)
+   - `cold-unit-1` (for the Pi; the Thing is still called `cold-unit-01`)
    If **Authorization** (topic rules) is offered, allow both users only `coldchain/#`.
 4. Test it from the laptop first: in `backend/.env` and `edge/.env` switch to the commented
    cloud-broker lines (address, port 8883, TLS on, the two users), then run `npm run dev`
@@ -94,7 +94,7 @@ Keep every password and key in Railway's Variables only, never in the repository
 2. **Firebase console → Authentication → Settings → Authorized domains → Add domain**:
    `<dashboard>.up.railway.app`. Without it, sign-in on the deployed dashboard is refused.
 3. Open the dashboard on a phone, sign in as a supervisor, then run the node (laptop or Pi) with
-   `edge/.env` on EMQX with the `cold-unit-01` user. Type `temp 9.5`: the dashboard turns
+   `edge/.env` on EMQX with the `cold-unit-1` user. Type `temp 9.5`: the dashboard turns
    WARNING then ALARM, and **Acknowledge** works (that call goes through Railway).
 4. **Door QR** page: print the label **from the deployed dashboard** (the code contains its address).
 

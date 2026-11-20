@@ -50,3 +50,6 @@ hardware/kicad/output/build.log
 # Claude Code files: stay on this laptop only
 .claude/
 CLAUDE.md
+
+# Overleaf upload copy of docs/design-review
+docs/design-review-overleaf.zip
