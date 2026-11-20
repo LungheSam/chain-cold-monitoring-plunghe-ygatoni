@@ -176,6 +176,12 @@ We call the Africa's Talking REST API (`POST /version1/messaging`) with `fetch` 
 with known high-severity vulnerabilities (npm audit, 11 Nov 2026). VERIFY the first real send in the
 sandbox simulator.
 
+Update 20 Nov: live account `coldchainmonitoring` in use. With the shared sender ID, most SMS were
+accepted by the API but then **Rejected** in delivery (to two MTN numbers; about 1 in 4 delivered).
+A registered sender ID would likely fix it but is expensive, so **Telegram is added as a backup
+channel**: every alert and follow-up also goes to a Telegram bot chat (free, reliable). We still ask
+Africa's Talking support why the messages are rejected.
+
 ## D16. Timeline: decided
 
 Today is 11 Nov. The design review is on 20 Nov (9 days), and firmware plus hardware must be clearly

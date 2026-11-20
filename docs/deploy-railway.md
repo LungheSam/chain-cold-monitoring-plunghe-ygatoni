@@ -61,7 +61,8 @@ Keep every password and key in Railway's Variables only, never in the repository
    | `FIREBASE_SERVICE_ACCOUNT` | the **whole content** of `service-account.json` (Railway holds no files) |
    | `MQTT_URL` | `mqtts://<deployment>.<region>.emqxsl.com:8883` (the address from step 1) |
    | `MQTT_USERNAME` / `MQTT_PASSWORD` | the **`backend`** EMQX user |
-   | `AT_USERNAME` / `AT_API_KEY` | Africa's Talking (live account for the demo; empty key = SMS only in the log) |
+   | `AT_USERNAME` / `AT_API_KEY` | Africa's Talking live app (`coldchainmonitoring`); empty key = SMS only in the log |
+   | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_IDS` | Telegram backup channel (optional; see `backend/README.md`) |
 
    Do **not** set `PORT` (Railway sets it), `DEV_AUTH`, `GOOGLE_APPLICATION_CREDENTIALS` or `MQTT_CA_FILE`.
 5. Deploy. The **Logs** must show `HTTP on port ...` and `MQTT connected to mqtts://...`.

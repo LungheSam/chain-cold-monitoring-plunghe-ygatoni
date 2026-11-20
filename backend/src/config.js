@@ -31,5 +31,10 @@ export function loadConfig(env = process.env) {
       apiKey: env.AT_API_KEY || '',
       senderId: env.AT_SENDER_ID || '',
     },
+    // Backup channel: every SMS text is also sent to these Telegram chats (empty = off)
+    telegram: {
+      botToken: env.TELEGRAM_BOT_TOKEN || '',
+      chatIds: (env.TELEGRAM_CHAT_IDS || '').split(',').map((s) => s.trim()).filter(Boolean),
+    },
   };
 }

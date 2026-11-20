@@ -7,7 +7,7 @@ import mqtt from 'mqtt';
 import { loadConfig } from './config.js';
 import { createMemoryStore } from './store/memoryStore.js';
 import { createSummaries } from './summaries.js';
-import { createAfricasTalkingSender, createConsoleSender, createSmsNotifier } from './sms.js';
+import { createAfricasTalkingSender, createConsoleSender, createSmsNotifier, createTelegramSender } from './sms.js';
 import { createCommandBus } from './commands.js';
 import { createHub } from './sse.js';
 import { createIngest } from './ingest.js';
@@ -36,6 +36,10 @@ if (config.store === 'memory') {
 // ---- SMS
 const sender = config.sms.apiKey ? createAfricasTalkingSender(config.sms) : createConsoleSender(log);
 if (!config.sms.apiKey) log.warn('AT_API_KEY not set: SMS are only printed to the console');
+// Telegram backup: on only when both the bot token and at least one chat id are set
+const tg = config.telegram;
+const backup = tg.botToken && tg.chatIds.length ? createTelegramSender(tg) : null;
+log.info(backup ? `Telegram backup on (${tg.chatIds.length} chat(s))` : 'Telegram backup off (TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_IDS not set)');
 
 // ---- MQTT
 const mqttOptions = {
@@ -49,7 +53,7 @@ if (config.mqtt.caFile) mqttOptions.ca = readFileSync(config.mqtt.caFile);
 let client;   // connected below, once the saved unit state is loaded
 
 const summaries = createSummaries({ store, log });
-const sms = createSmsNotifier({ store, sender, log });
+const sms = createSmsNotifier({ store, sender, backup, log });
 const bus = createCommandBus({
   publish: (topic, payload) => client.publish(topic, payload, { qos: 1 }),
   timeoutMs: config.commandTimeoutMs,

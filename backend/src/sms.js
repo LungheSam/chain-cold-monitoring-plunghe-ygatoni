@@ -79,28 +79,46 @@ export function clearText(unitId, event, offlineMs) {
   }
 }
 
-export function createSmsNotifier({ store, sender, now = Date.now, log = console, holdMs = HOLD_DELAYED_MS }) {
+// `backup` (optional) is a second channel, e.g. Telegram. It gets every message too, because an
+// SMS can be accepted by Africa's Talking and still be rejected later by the mobile network.
+export function createSmsNotifier({ store, sender, backup = null, now = Date.now, log = console, holdMs = HOLD_DELAYED_MS }) {
   const held = new Map(); // `${unitId}|${problem}` -> timer of a delayed alert waiting to be sent
+
+  async function sendBackup(type, kind, message) {
+    if (!backup) return null;
+    try {
+      const status = await backup.send(message);
+      log.info(`Telegram ${kind} ${type} [${status}]`);
+      return String(status);
+    } catch (err) {
+      log.error(`Telegram failed: ${err.message}`);
+      return `error: ${err.message}`;
+    }
+  }
 
   async function send(unitId, type, kind, message) {
     const contacts = await store.getContactsForUnit(unitId);
     const to = contacts.map((c) => c.phone);
+    let providerStatus = 'no contacts';
     if (to.length === 0) {
       log.warn(`SMS not sent (no active contacts for ${unitId}): ${message}`);
-      return;
+    } else {
+      try {
+        providerStatus = await sender.send(to, message);
+        // providerStatus is Africa's Talking's answer per phone, e.g. "+2507...:Success".
+        // Phone numbers are masked in the log (last 3 digits kept).
+        const shown = String(providerStatus).replace(/\+?\d{6,}(\d{3})/g, '***$1');
+        log.info(`SMS ${kind} ${type} to ${to.length} contact(s) [${shown}]: ${message}`);
+      } catch (err) {
+        providerStatus = `error: ${err.message}`;
+        log.error(`SMS failed: ${err.message}`);
+      }
     }
-    let providerStatus;
-    try {
-      providerStatus = await sender.send(to, message);
-      // providerStatus is Africa's Talking's answer per phone, e.g. "+2507...:Success".
-      // Phone numbers are masked in the log (last 3 digits kept).
-      const shown = String(providerStatus).replace(/\+?\d{6,}(\d{3})/g, '***$1');
-      log.info(`SMS ${kind} ${type} to ${to.length} contact(s) [${shown}]: ${message}`);
-    } catch (err) {
-      providerStatus = `error: ${err.message}`;
-      log.error(`SMS failed: ${err.message}`);
-    }
-    await store.addSmsLog({ ts: now(), unitId, type, kind, to, message, providerStatus: String(providerStatus) });
+    const telegramStatus = await sendBackup(type, kind, message);
+    if (to.length === 0 && !backup) return; // nothing was sent anywhere: nothing to log
+    const entry = { ts: now(), unitId, type, kind, to, message, providerStatus: String(providerStatus) };
+    if (telegramStatus !== null) entry.telegramStatus = telegramStatus;
+    await store.addSmsLog(entry);
   }
 
   async function sendAlert(unitId, event, delayed) {
@@ -182,6 +200,31 @@ export function createAfricasTalkingSender({ username, apiKey, senderId = '', fe
       const data = JSON.parse(text);
       const recipients = data.SMSMessageData?.Recipients || [];
       return recipients.map((r) => `${r.number}:${r.status}`).join(', ') || data.SMSMessageData?.Message || 'sent';
+    },
+  };
+}
+
+// Telegram bot (backup channel). One HTTPS POST per chat to the Bot API's sendMessage.
+// The token comes from @BotFather; each chat id is the supervisor's (or a group's) chat.
+export function createTelegramSender({ botToken, chatIds, fetchFn = fetch }) {
+  const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+  return {
+    async send(message) {
+      const results = [];
+      for (const chatId of chatIds) {
+        try {
+          const res = await fetchFn(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: chatId, text: message }),
+          });
+          const data = await res.json().catch(() => ({}));
+          results.push(`${chatId}:${data.ok ? 'ok' : `error ${res.status} ${data.description || ''}`.trim()}`);
+        } catch (err) {
+          results.push(`${chatId}:error ${err.message}`);
+        }
+      }
+      return results.join(', ');
     },
   };
 }

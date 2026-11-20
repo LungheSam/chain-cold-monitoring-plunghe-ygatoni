@@ -10,7 +10,7 @@ commands to the node, SMS alerts and the small dashboard API.
 | `src/td.js` | Builds the Thing Description |
 | `src/wot.js` | WoT routes: properties, actions, events (SSE) |
 | `src/commands.js` | Commands to the node with id, 30 s expiry, wait for `cmd/result` |
-| `src/sms.js` | SMS rules, 15-min de-duplication, follow-ups, Africa's Talking REST call |
+| `src/sms.js` | SMS rules, 15-min de-duplication, follow-ups, Africa's Talking REST call, Telegram backup |
 | `src/summaries.js` | Hourly/daily summaries (with MKT) for the dashboard |
 | `src/auth.js` | Firebase ID token check and roles (`supervisor`, `viewer`) |
 | `src/api.js` | `/api/me` and SMS contacts for the Settings page |
@@ -91,3 +91,18 @@ curl -X POST -H "Authorization: Bearer dev-supervisor" http://localhost:3000/thi
 Auth = header `Authorization: Bearer <Firebase ID token>`.
 
 Deployment on Railway: [docs/deploy-railway.md](../docs/deploy-railway.md).
+
+## Telegram backup channel
+
+Every SMS text (alerts and follow-ups) is also sent to Telegram, because an SMS can be accepted by
+Africa's Talking and still be rejected later by the mobile network (seen on 20 Nov 2026 with the
+shared sender ID: most messages "Rejected" in the Africa's Talking outbox). A failure on one channel
+never stops the other; both results are stored in `smsLog` (`providerStatus`, `telegramStatus`).
+
+1. In Telegram, chat with **@BotFather** → `/newbot` → pick a name → copy the **token**.
+2. Put `TELEGRAM_BOT_TOKEN=<token>` in `backend/.env`, open your new bot in Telegram and send it
+   any message. Each supervisor who should get alerts does the same (or add the bot to a group).
+3. `npm run telegram-ids` prints the chat ids and a ready `TELEGRAM_CHAT_IDS=...` line.
+4. On Railway (back end) set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_IDS`, then deploy.
+   The log then says `Telegram backup on (N chat(s))`.
+
