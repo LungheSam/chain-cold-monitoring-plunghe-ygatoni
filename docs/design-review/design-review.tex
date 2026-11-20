@@ -16,7 +16,7 @@
 \usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc}
 \usepackage{fontawesome5}
 \usepackage{dirtree}
-\usepackage{balance}
+\usepackage{flushend} % balances the two columns on the last page
 \usepackage{url}
 \usepackage{cite}
 
@@ -402,6 +402,10 @@ warm room. Frozen gel packs are our fallback for the demonstration.
 \item \emph{Power cuts.} In our demonstration, unplugging the 12~V supply stands for a power cut.
 In a real cut, the Pi would also lose power unless it has a backup supply. We still need to choose
 an uninterruptible power supply (UPS) board that does not use our GPIO pins.
+% Column break: ends the left column here so the last page's columns end at the same height
+% (flushend cannot move text past the figure and table at the top of that page).
+% If the layout changes (e.g. after adding the photo), move or remove this \newpage.
+\newpage
 \item \emph{Cloud services.} The free HiveMQ plan closed, so we use EMQX Cloud; the back end and
 the dashboard run on Railway.
 \item \emph{SMS delivery.} With Africa's Talking's shared sender identifier (ID), our messages
@@ -425,8 +429,8 @@ deployed cloud services.
 
 \note{The code is on GitHub, shared with the TA. The report contains no code, as the manual asks.}
 
-\balance
 
+\flushbottom % flushend needs this on the last page to balance the columns
 \begin{thebibliography}{3}
 
 \bibitem{who2006}
