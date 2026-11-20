@@ -43,19 +43,19 @@ export function alertText(unitId, event) {
     case 'OUT_OF_RANGE_HIGH':
     case 'OUT_OF_RANGE_LOW': {
       const word = event.type.endsWith('HIGH') ? 'above' : 'below';
-      return `ALERT ${unitId}: temp ${d.temp}C ${word} ${d.limit}C since ${clockTime(d.since ?? event.ts)}. ` +
+      return `Problem at ${unitId}: temp ${d.temp}C ${word} ${d.limit}C since ${clockTime(d.since ?? event.ts)}. ` +
         `Out of range total ${duration(d.outOfRangeSeconds ?? 0)}.`;
     }
     case 'DOOR_OPEN_TOO_LONG':
-      return `ALERT ${unitId}: door open for ${duration(d.openSeconds ?? 0)} (limit ${duration(d.limitS ?? 0)}).`;
+      return `Problem at ${unitId}: door open for ${duration(d.openSeconds ?? 0)} (limit ${duration(d.limitS ?? 0)}).`;
     case 'POWER_LOST':
-      return `ALERT ${unitId}: mains power lost at ${clockTime(event.ts)}. Unit running on battery.`;
+      return `Problem at ${unitId}: mains power lost at ${clockTime(event.ts)}. Unit running on battery.`;
     case 'SENSOR_FAULT':
-      return `ALERT ${unitId}: ${SENSOR_NAMES[d.sensor] || d.sensor} fault (${d.reason}). Check the sensor.`;
+      return `Problem at ${unitId}: ${SENSOR_NAMES[d.sensor] || d.sensor} fault (${d.reason}). Check the sensor.`;
     case 'OFFLINE':
-      return `ALERT ${unitId}: unit offline since ${clockTime(event.ts)} (no data for 2 min).`;
+      return `Problem at ${unitId}: unit offline since ${clockTime(event.ts)} (no data for 2 min).`;
     default:
-      return `ALERT ${unitId}: ${event.type}`;
+      return `Problem at ${unitId}: ${event.type}`;
   }
 }
 
@@ -92,7 +92,10 @@ export function createSmsNotifier({ store, sender, now = Date.now, log = console
     let providerStatus;
     try {
       providerStatus = await sender.send(to, message);
-      log.info(`SMS ${kind} ${type} to ${to.length} contact(s): ${message}`);
+      // providerStatus is Africa's Talking's answer per phone, e.g. "+2507...:Success".
+      // Phone numbers are masked in the log (last 3 digits kept).
+      const shown = String(providerStatus).replace(/\+?\d{6,}(\d{3})/g, '***$1');
+      log.info(`SMS ${kind} ${type} to ${to.length} contact(s) [${shown}]: ${message}`);
     } catch (err) {
       providerStatus = `error: ${err.message}`;
       log.error(`SMS failed: ${err.message}`);

@@ -16,7 +16,7 @@ test('an out-of-range event sends one clear SMS to the contacts', async () => {
   await h.send('event', highEvent(h));
   assert.equal(h.smsSent.length, 1);
   assert.deepEqual(h.smsSent[0].to, ['+250788000001']);
-  assert.equal(h.smsSent[0].message, 'ALERT cold-unit-01: temp 9.4C above 8C since 13:59. Out of range total 12 min.');
+  assert.equal(h.smsSent[0].message, 'Problem at cold-unit-01: temp 9.4C above 8C since 13:59. Out of range total 12 min.');
   assert.equal(h.store.db.smsLog.length, 1);
 });
 
@@ -65,7 +65,7 @@ test('no follow-up when the alert itself was suppressed', async () => {
   h.clock.t += 5 * MIN;
   await h.send('event', event('DOOR_OPEN_TOO_LONG', { openSeconds: 15, limitS: 15 }, { ts: h.now() })); // suppressed
   await h.send('event', event('DOOR_CLOSED', { openSeconds: 30, alarmed: true }, { ts: h.now() }));     // no follow-up
-  assert.deepEqual(h.smsSent.map((s) => s.message.slice(0, 5)), ['ALERT', 'OK co']);
+  assert.deepEqual(h.smsSent.map((s) => s.message.slice(0, 5)), ['Probl', 'OK co']);
 });
 
 test('excursion follow-up gives duration and peak temperature', async () => {
@@ -90,7 +90,7 @@ test('delayed alert is marked, and skipped if it cleared in the same batch', asy
   await h.send('event', event('DOOR_OPEN_TOO_LONG', { openSeconds: 15, limitS: 15 }, { ts: old }));
   await wait(60);
   assert.equal(h.smsSent.length, 1);
-  assert.match(h.smsSent[0].message, /^\(delayed\) ALERT cold-unit-01: door open/);
+  assert.match(h.smsSent[0].message, /^\(delayed\) Problem at cold-unit-01: door open/);
 });
 
 test('offline for more than 2 minutes sends an SMS, and coming back sends a follow-up', async () => {
@@ -104,7 +104,7 @@ test('offline for more than 2 minutes sends an SMS, and coming back sends a foll
   h.clock.t += 31000;
   await h.ingest.checkOffline();
   assert.equal(h.smsSent.length, 1);
-  assert.match(h.smsSent[0].message, /^ALERT cold-unit-01: unit offline since 14:00/);
+  assert.match(h.smsSent[0].message, /^Problem at cold-unit-01: unit offline since 14:00/);
   await h.ingest.checkOffline();
   assert.equal(h.smsSent.length, 1);            // only once
   h.clock.t += 5 * MIN;
