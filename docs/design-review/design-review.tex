@@ -161,7 +161,8 @@ database and sends them in order later.
 
 \emph{Application.} A Node.js back end subscribes to the broker. It serves the Thing Description
 and its properties, actions and events over HTTP, stores data in Firebase Firestore, and sends SMS
-through Africa's Talking, which works in Rwanda and reaches any phone. A React dashboard shows the
+through Africa's Talking, which works in Rwanda and reaches any phone. Every alert also goes to a
+Telegram bot as a backup channel (Section~\ref{sec:discussion}). A React dashboard shows the
 live status, a temperature chart with the safe band, the excursions and simple analytics.
 
 \begin{table*}[!t]
@@ -194,9 +195,10 @@ MQTT over TLS (port 8883) to EMQX Cloud Serverless &
 Light publish--subscribe protocol, two-way, last-will message for offline detection; free plan
 with a trusted TLS certificate. \\
 Cloud and WoT &
-Node.js back end on Railway; W3C Thing Description 1.1; Firestore; Africa's Talking SMS &
+Node.js back end on Railway; W3C Thing Description 1.1; Firestore; Africa's Talking SMS;
+Telegram bot &
 Standard Web Thing interface for any client; managed database with real-time listeners; SMS
-reaches basic phones in Rwanda. \\
+reaches basic phones in Rwanda; Telegram is a free, reliable backup for the alerts. \\
 Application &
 React dashboard and QR unlock page &
 Works on a laptop and a phone; supervisors sign in; the QR page links each unlock to a person. \\
@@ -376,13 +378,16 @@ handles the keypad: PINs are stored as salted hashes, and three wrong PINs lock 
 \section{Implementation}
 
 Table~\ref{tab:progress} shows the work breakdown from our proposal, split into smaller tasks, with
-the status of each. The software is complete and tested without hardware: 149 unit tests and an
+the status of each. The software is complete and tested without hardware: 154 unit tests and an
 end-to-end test of 34 checks pass. The end-to-end test runs a broker, the back end and a simulated
-node together. The live services (EMQX broker and Firestore) also work with the simulated node.
-The main open work is the hardware, which depends on the parts we are buying.
+node together. The back end and the dashboard are deployed on Railway and work with the simulated
+node through EMQX: an alarm reaches the dashboard, Firestore and the supervisors' Telegram within
+seconds, and the Acknowledge and unlock commands from the dashboard reach the node and are logged
+with the supervisor's name. The main open work is the hardware, which depends on the parts we are
+buying.
 
 \begin{table}[!t]
-\caption{Work breakdown and progress (19 November 2026)}
+\caption{Work breakdown and progress (20 November 2026)}
 \label{tab:progress}
 \centering
 \footnotesize
@@ -400,8 +405,8 @@ Back end, TD and database & Putshu & Completed \\
 Design review report & Both & Completed \\
 Alarm logic and out-of-range timer & Yves & Completed \\
 Dashboard & Putshu & Completed \\
-SMS alerts & Putshu & In Progress \\
-Cloud deployment & Putshu & In Progress \\
+SMS and Telegram alerts & Putshu & Completed \\
+Cloud deployment & Putshu & Completed \\
 Extension: keypad, lock, QR page & Both & In Progress \\
 Enclosure and carrier board & Both & In Progress \\
 Integration and testing & Both & In Progress \\
@@ -416,6 +421,7 @@ Yet to start if you have not wired anything yet. ``Component sourcing'' stays In
 school's order arrives.}
 
 \section{Discussion}
+\label{sec:discussion}
 
 Most of the risk is now in the hardware. The key challenges are:
 
@@ -431,7 +437,12 @@ warm room. Frozen gel packs are our fallback for the demonstration.
 In a real cut, the Pi would also lose power unless it has a backup supply. We still need to choose
 a UPS board that does not use our GPIO pins.
 \item \emph{Cloud services.} The free HiveMQ plan we planned to use closed, so we moved to EMQX
-Cloud. The Railway hosting needs a paid plan, and the SMS account needs credit before the demo.
+Cloud. The back end and the dashboard now run on Railway.
+\item \emph{SMS delivery.} With Africa's Talking's shared sender ID, our messages were accepted
+but most were then rejected by the mobile network before reaching our two MTN phones. A registered
+sender ID would likely fix this but is expensive, so we added a Telegram bot as a free second
+channel: every alert and follow-up goes to both, and a failure on one never stops the other. We
+will also ask Africa's Talking why the messages are rejected.
 \item \emph{SMS needs the Internet.} The SMS leaves from the cloud, so a site without Internet gets
 the local alarm but no SMS. A GSM module on the node would solve this; it is future work.
 \end{itemize}
@@ -442,7 +453,7 @@ The design is complete and the software is working. The node, the back end and t
 their tests together with a simulated fridge, and the Fritzing model fixes the wiring of the
 reduced version. The next steps are to wire the prototype when the parts arrive, measure the
 values we marked for checking (the LCD address, the lock current and the divider voltage), print
-the enclosure, and deploy the back end and dashboard for the demonstration on 2 December.
+the enclosure, and rehearse the demonstration of 2 December with the deployed cloud services.
 
 \note{The code is on GitHub, shared with the TA. The report contains no code, as the manual asks.}
 
