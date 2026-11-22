@@ -15,7 +15,7 @@ Anything marked **VERIFY** must be measured or checked on the real part before c
 | Red LED | 23 | 16 | out | 330 Ω |
 | Green LED | 24 | 18 | out | 330 Ω |
 | I2C SDA / SCL | 2 / 3 | 3 / 5 | I2C | LCD at 0x27 (VERIFY with `i2cdetect -y 1`). Pi has 1.8 kΩ pull-ups to 3.3 V on the board |
-| Lock MOSFET gate | 25 | 22 | out | 100 Ω series, 10 kΩ pull-down. GPIO 25 is pulled down at boot, so the lock stays off |
+| Lock relay module IN | 25 | 22 | out | GPIO 25 is pulled down at boot, so a module that switches on with a HIGH input stays off (use one, or set its H/L jumper to H) |
 | Keypad rows R1–R4 | 5, 6, 13, 19 | 29, 31, 33, 35 | out (scan) | |
 | Keypad cols C1–C4 | 12, 16, 20, 21 | 32, 36, 38, 40 | in, internal pull-up | |
 | Spare | 26 | 37 | | kept free (e.g. a hardware ack button later) |
@@ -65,10 +65,33 @@ but not problem 2. The carrier PCB (Phase 7) will include two BSS138 + 4 resisto
 
 ## Lock driver (extension)
 
-5 V 2 A adapter (+) → solenoid → MOSFET drain; source → GND; 1N4007 (or 1N5819) across the
-solenoid, cathode to +5 V; GPIO 25 → 100 Ω → gate; 10 kΩ gate → GND. Lock-adapter GND joined to Pi GND.
-Use IRLB8721 (TO-220, easy to solder) or AO3400 (SOT-23, PCB only; the carrier PCB uses an AO3400A). Not IRLZ44N, which is not fully
-on at 3.3 V gate drive. Solenoid current about 1 A: **VERIFY** by measuring with the lock energised.
+No logic-level MOSFET is sold locally, so a **5 V relay module** switches the lock (20 Nov 2026).
+
+- Module: VCC → 5 V rail, GND → GND rail, IN → GPIO 25. The relay contacts switch the lock's
+  own supply, so the lock circuit does not share ground with the Pi.
+- Lock supply (+) → relay COM; relay NO → lock (+); lock (−) → lock supply (−). 1N4007 across the
+  lock, cathode (stripe) to the lock's (+).
+- **Trigger level VERIFY:** with the Pi off, power the module's VCC and touch IN to GND, then to 5 V:
+  the relay must click only on HIGH. If it clicks on LOW, set its H/L jumper to H; only if it has
+  none, set `LOCK_ACTIVE_LOW=1` in `edge/.env` (it may still click while the Pi boots).
+- **Our lock** (SARY cabinet lock) is labelled 24 V, 1.4 A, "power-on time 500 ms": it needs only a
+  short pulse to release the latch. The software powers it for `LOCK_PULSE_S` (0.5 s) and then
+  rests 5 s. A **12 V** version was requested so it can run from the 12 V supply through its own
+  fuse; until then, use a 24 V adapter for it, never the Pi.
+- The lock has four wires: two for the coil, and probably two for a built-in door switch. VERIFY the
+  colours with the seller's sheet or a multimeter before connecting.
+
+## Peltier switching
+
+The W1209's own relay (about 10 A) only switches the coil of a **SONGLE SLA-12VDC-SL-A** relay
+(12 V coil, 30 A contacts), which switches the Peltier kit's 8–10 A:
+12 V supply (+) → 15 A fuse → SLA contact COM; SLA NO → Peltier kit (+); kit (−) → supply COM.
+W1209 relay → SLA coil (+); coil (−) → supply COM; 1N4007 across the coil, stripe to (+).
+The SLA is a circuit-board relay: solder its pins or use a screw-terminal adapter, never a breadboard.
+The supply we received is an **S-120-12, 12 V 10 A**: at the limit for the whole kit, so either run
+one of the kit's two Peltier modules, or get a 20–30 A supply. Its mains side (L, N, ⏚) is wired by
+the lab technician, with the earth connected and the terminal cover on; check its 110/220 V switch
+is on **220 V** before the first power-on.
 
 ## Fritzing wiring list (design review)
 
@@ -172,19 +195,19 @@ facing you, ribbon at the bottom (below `* 0 # D`). Confirm once with `test_keyp
 
 | Part | Part pin | Connects to | Pi pin (GPIO) | Colour |
 |---|---|---|---|---|
-| 5 V 2 A barrel jack | + | solenoid (+) | – | red (label "5 V lock") |
-| 5 V 2 A barrel jack | − | GND rail (common ground) | – | black |
-| Solenoid | (−) | Q2 drain | – | (short wire) |
-| Q2 IRLB8721 | source | GND rail | – | black |
-| R9 100 Ω | – | Pi → Q2 gate | 22 (GPIO 25) | ochre |
-| R10 10 kΩ | – | Q2 gate → GND rail | – | (component) |
-| D3 1N4007 | – | across the solenoid, cathode (stripe) to the 5 V lock supply | – | (component) |
+| Relay module | VCC | 5 V rail | – | red |
+| Relay module | GND | GND rail | – | black |
+| Relay module | IN | Pi | 22 (GPIO 25) | ochre |
+| Lock supply | + | relay COM | – | red (label "lock supply") |
+| Relay module | NO | lock (+) | – | red |
+| Lock | (−) | lock supply (−) | – | black |
+| D3 1N4007 | – | across the lock, cathode (stripe) to the lock's (+) | – | (component) |
 
-Never connect the solenoid to the Pi's 5 V pins: the lock current comes from its own adapter only.
+Never connect the lock to the Pi's 5 V pins: the lock current comes from its own supply only.
 
 ### Parts list for the breadboard build
 
 R1 4.7 kΩ · R2 10 kΩ (if needed) · R3 10 kΩ · R4 2.7 kΩ · R5 1 kΩ · R6 1 kΩ · R7, R8 330 Ω ·
-R9 100 Ω · R10 10 kΩ · C1 100 nF · D1 1N5819 · D2 1N4148 · D3 1N4007 · Q1 2N2222 or BC547 ·
-Q2 IRLB8721 · F1 fuse just above the 12 V adapter rating (D14) · BSS138 level-shifter module ·
-two barrel jacks.
+C1 100 nF · D1 1N5819 · D2 1N4148 · D3, D4 1N4007 · Q1 2N2222 or BC547 · 5 V relay module (lock) ·
+SONGLE SLA-12VDC-SL-A relay (Peltier) · F1 15 A fuse · I2C level-shifter module · two barrel jacks.
+(The carrier PCB still uses an AO3400A MOSFET for the lock; the breadboard uses the relay module.)

@@ -42,6 +42,12 @@ def load_settings(env=None):
         # Extension (Phase 5): keypad and solenoid lock. Off unless fitted.
         "KEYPAD_INSTALLED": env.get("KEYPAD_INSTALLED", "0") == "1",
         "LOCK_INSTALLED": env.get("LOCK_INSTALLED", "0") == "1",
+        # Cabinet locks like ours only need a short pulse to release the latch
+        # (label: "power-on time 500 ms"). The coil is never powered longer than this.
+        "LOCK_PULSE_S": float(env.get("LOCK_PULSE_S", "0.5")),
+        # 1 for relay modules that switch on with a LOW input. Prefer a module (or jumper) that
+        # switches on with HIGH: an active-LOW module can click on while the Pi boots.
+        "LOCK_ACTIVE_LOW": env.get("LOCK_ACTIVE_LOW", "0") == "1",
         "PINS_FILE": env.get("PINS_FILE", "./pins.json"),
     }
     settings.update(PROFILES[profile])

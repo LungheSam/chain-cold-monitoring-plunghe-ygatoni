@@ -26,9 +26,12 @@ MESSAGE_S = 3
 class LockControl:
     """Turns the lock on for a few seconds, then off. `set_lock(bool)` drives the real output."""
 
-    def __init__(self, clock, set_lock):
+    def __init__(self, clock, set_lock, pulse_s=None):
         self.clock = clock
         self.set_lock = set_lock
+        # pulse_s: if set, the coil is powered for only this long (a short pulse releases a
+        # cabinet lock's latch). None = powered for the whole requested time (plain solenoid).
+        self.pulse_s = pulse_s
         self.off_at = None          # monotonic time when the lock must close again
         self.rest_until = 0.0
         set_lock(False)             # always start locked
@@ -44,6 +47,8 @@ class LockControl:
         if now < self.rest_until:
             return "lock resting, try again in %d s" % math.ceil(self.rest_until - now)
         seconds = max(1, min(int(seconds), MAX_UNLOCK_S))
+        if self.pulse_s:
+            seconds = min(seconds, self.pulse_s)
         self.off_at = now + seconds
         self.set_lock(True)
         return None

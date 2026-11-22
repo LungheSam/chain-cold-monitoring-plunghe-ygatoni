@@ -53,7 +53,8 @@ class Node:
         self.state_path = os.path.join(settings["DATA_DIR"], "state.json")
         self.engine.load_state(load_json(self.state_path))
         # Door access (extension): the lock pulse timer, keypad PINs and QR unlocks
-        self.lock = LockControl(clock, outputs.set_lock) if settings["LOCK_INSTALLED"] else None
+        self.lock = (LockControl(clock, outputs.set_lock, settings.get("LOCK_PULSE_S"))
+                     if settings["LOCK_INSTALLED"] else None)
         self.access = AccessController(clock, pins or PinStore(settings["PINS_FILE"]), self.lock, self.engine)
         if keypad and not self.access.pins.users:
             log.warning("No PINs in %s: the keypad will answer NO PINS SET (python -m coldchain.pins add <name>)",
@@ -235,7 +236,7 @@ def main(argv=None):
     else:
         from coldchain.hardware import PiLcd, PiOutputs, PiSensors
         from coldchain.sysfs import wifi_up
-        outputs = PiOutputs()              # first: puts the lock and buzzer pins in a safe OFF state
+        outputs = PiOutputs(settings["LOCK_ACTIVE_LOW"])   # first: lock and buzzer pins in a safe OFF state
         sensors = PiSensors()
         lcd = PiLcd(int(os.environ.get("LCD_ADDRESS", "0x27"), 16))
         wifi_fn = wifi_up

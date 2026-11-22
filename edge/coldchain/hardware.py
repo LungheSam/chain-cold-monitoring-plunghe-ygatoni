@@ -90,9 +90,10 @@ class PiSensors:
 class PiOutputs:
     """LEDs and buzzer. Blinking is timed from the main loop (called every 0.1 s), no extra threads."""
 
-    def __init__(self):
+    def __init__(self, lock_active_low=False):
         # Lock first, and OFF: the solenoid must never open at start-up (D8). access.py times the pulses.
-        self.lock_pin = DigitalOutputDevice(PIN_LOCK, initial_value=False)
+        # With an active-LOW relay module, "off" means the pin is held HIGH (gpiozero does the inversion).
+        self.lock_pin = DigitalOutputDevice(PIN_LOCK, active_high=not lock_active_low, initial_value=False)
         self.red = LED(PIN_RED)
         self.green = LED(PIN_GREEN)
         # Passive buzzer through an NPN transistor: square wave at 2 kHz, 50 % duty when on.

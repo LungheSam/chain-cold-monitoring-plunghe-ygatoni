@@ -96,6 +96,21 @@ def test_lock_starts_off_pulses_5_s_and_rests():
     assert lock.pulse() is None
 
 
+def test_cabinet_lock_gets_only_a_short_pulse():
+    # Our lock's label says "power-on time 500 ms": a 5 s unlock powers the coil for 0.5 s only
+    clock = FakeClock()
+    hw = FakeLock()
+    lock = LockControl(clock, hw, pulse_s=0.5)
+    assert lock.pulse(5) is None
+    assert hw.on
+    clock.advance(0.4)
+    lock.update()
+    assert hw.on
+    clock.advance(0.1)
+    lock.update()
+    assert not hw.on
+
+
 # ---------------------------------------------------------------- keypad
 
 def test_correct_pin_unlocks_for_5_s_and_is_logged(tmp_path):
