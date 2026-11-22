@@ -1,7 +1,7 @@
 """DHT22 ambient sensor through the kernel IIO driver. Run: python -m tests.hw.test_dht22"""
 import time
 
-from tests.hw.common import banner
+from tests.hw.common import banner, lcd_show, say
 
 WIRING = """
 DHT22 VCC  -> 3.3 V (pin 17)
@@ -16,6 +16,7 @@ def main():
     banner("DHT22 test: 10 readings, one every 3 s. Breathe on it to see humidity rise.", WIRING)
     folder = sysfs.find_dht_device()
     if folder is None:
+        say("DHT22 FAIL", "driver not found")
         print("FAIL: no IIO device named dht11* in /sys/bus/iio/devices.")
         print("Check the overlay line and the reboot; then: cat /sys/bus/iio/devices/*/name")
         return
@@ -26,10 +27,16 @@ def main():
         if temp is None:
             fails += 1
             print("%2d: read error (normal now and then)" % (i + 1))
+            lcd_show("DHT22 %d/10" % (i + 1), "read error")
         else:
             print("%2d: %.1f C  %.1f %%RH" % (i + 1, temp, hum))
+            lcd_show("DHT22 %d/10" % (i + 1), "%.1fC  %.1f%%RH" % (temp, hum))
         time.sleep(3)
-    print("PASS" if fails <= 3 else "FAIL: %d of 10 reads failed. Check the pull-up and wire length." % fails)
+    if fails <= 3:
+        say("DHT22 test", "PASS")
+    else:
+        say("DHT22 FAIL", "%d/10 reads bad" % fails)
+        print("Check the pull-up and wire length.")
     print("If values look wrong (humidity near 1 %, temperature near 0.2 C) the driver is decoding")
     print("the sensor as a DHT11: tell Claude, and we switch to a user-space library.")
 

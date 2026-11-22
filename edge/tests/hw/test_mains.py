@@ -1,5 +1,5 @@
 """12 V mains sense through the 10k / 2.7k divider. Run: python -m tests.hw.test_mains"""
-from tests.hw.common import banner, stop_if_service_running, watch
+from tests.hw.common import banner, say, stop_if_service_running, watch
 
 WIRING = """
 12 V (+), after the fuse -> 10 kOhm -> node -> 2.7 kOhm -> GND
@@ -16,8 +16,13 @@ def main():
     from gpiozero import DigitalInputDevice
     banner("Mains test: plug and unplug the 12 V adapter a few times in 30 s.", WIRING)
     sense = DigitalInputDevice(22, pull_up=None, active_state=True)
-    changes = watch(lambda: sense.value, lambda v: "POWER PRESENT" if v else "POWER LOST", 30)
-    print("PASS" if changes >= 2 else "FAIL: no change seen. Measure the divider node voltage.")
+    changes = watch(lambda: sense.value, lambda v: "POWER PRESENT" if v else "POWER LOST", 30,
+                    lcd_title="12V sense 30 s")
+    if changes >= 2:
+        say("12V sense test", "PASS")
+    else:
+        say("12V sense FAIL", "no change seen")
+        print("Measure the divider node voltage.")
 
 
 if __name__ == "__main__":

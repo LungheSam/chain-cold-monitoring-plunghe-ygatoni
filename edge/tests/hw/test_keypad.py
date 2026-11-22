@@ -1,7 +1,7 @@
 """4x4 keypad. Run: python -m tests.hw.test_keypad"""
 import time
 
-from tests.hw.common import banner, stop_if_service_running
+from tests.hw.common import banner, lcd_show, say, stop_if_service_running
 
 WIRING = """
 Keypad ribbon (8 wires, left to right with the keys facing you, from the seller's diagram):
@@ -23,11 +23,15 @@ def main():
             if key:
                 seen.add(key)
                 print("key %s   (%d/16)" % (key, len(seen)))
+                lcd_show("Keypad %d/16" % len(seen), "last key: %s" % key)
             time.sleep(0.02)
     finally:
         keypad.close()
     missing = [k for row in ("123A", "456B", "789C", "*0#D") for k in row if k not in seen]
-    print("PASS" if not missing else "Keys never seen: " + " ".join(missing))
+    if not missing:
+        say("Keypad test", "PASS")
+    else:
+        say("Keypad missing", "".join(missing))
 
 
 if __name__ == "__main__":

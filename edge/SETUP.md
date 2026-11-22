@@ -1,5 +1,19 @@
 # Raspberry Pi setup and bring-up
 
+## Quick commands (our Pi: `ssh splintercell@192.168.137.49`)
+
+```bash
+cd ~/coldchain/edge
+.venv/bin/python -m tests.hw.test_dht22      # one part: dht22, ds18b20, reed, leds, buzzer, mains, keypad, lock, lcd
+.venv/bin/python -m coldchain.node --no-mqtt # the whole node, offline (Ctrl+C to stop)
+.venv/bin/python -m coldchain.node           # the whole node, connected to EMQX -> Railway dashboard
+```
+
+Every hardware test shows its progress and PASS/FAIL on the LCD as well as in the terminal.
+Settings for the Pi are in `~/coldchain/edge/.env` (`MOCK_HARDWARE=0`; turn on `KEYPAD_INSTALLED`
+and `LOCK_INSTALLED` once those parts are wired). Shut down before changing any wire:
+`sudo shutdown now`.
+
 Pi 4 Model B, Raspberry Pi OS 64-bit (Bookworm or Trixie, both work). Commands run on the Pi over SSH
 unless noted. Wiring for each part: `docs/wiring.md`.
 

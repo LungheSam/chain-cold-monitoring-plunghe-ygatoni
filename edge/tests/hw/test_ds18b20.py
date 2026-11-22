@@ -1,7 +1,7 @@
 """DS18B20 internal probe. Run: python -m tests.hw.test_ds18b20"""
 import time
 
-from tests.hw.common import banner
+from tests.hw.common import banner, lcd_show, say
 
 WIRING = """
 DS18B20 red    -> 3.3 V (pin 1)
@@ -17,6 +17,7 @@ def main():
     banner("DS18B20 test: 10 readings, 1 per second. Hold the probe to see it rise.", WIRING)
     path = sysfs.find_ds18b20()
     if path is None:
+        say("DS18B20 FAIL", "probe not found")
         print("FAIL: no 28-* device in /sys/bus/w1/devices.")
         print("Check: the overlay line, the reboot, the 4.7 kOhm pull-up, and the data wire on pin 7.")
         return
@@ -27,8 +28,13 @@ def main():
         if t is None or t in (85.0, -127.0):
             bad += 1
         print("%2d: %s" % (i + 1, "read error" if t is None else "%.3f C" % t))
+        lcd_show("DS18B20 %d/10" % (i + 1), "read error" if t is None else "%.2f C" % t)
         time.sleep(1)
-    print("PASS" if bad == 0 else "WARNING: %d bad readings (85.0 C = power-on value, check wiring)" % bad)
+    if bad == 0:
+        say("DS18B20 test", "PASS")
+    else:
+        say("DS18B20 WARNING", "%d bad readings" % bad)
+        print("85.0 C = power-on value: check the wiring")
 
 
 if __name__ == "__main__":
