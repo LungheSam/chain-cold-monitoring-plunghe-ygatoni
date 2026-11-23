@@ -160,12 +160,16 @@ Draw the Peltier and fan as a separate load on the 12 V node **after the fuse**,
 | R6 1 kΩ | – | Pi → Q1 base | 12 (GPIO 18) | purple |
 | Q1 NPN (2N2222 / BC547, VERIFY pin order) | emitter | GND rail | – | black |
 | Q1 | collector | buzzer (−) | – | (short wire) |
-| Buzzer | (+) | 5 V rail | – | red |
+| Buzzer (RS PRO 16 mm) | (+) | 5 V rail (the + leg is marked on the body: VERIFY) | – | red |
 | D2 1N4148 | – | across the buzzer, cathode to 5 V | – | (component) |
 | R7 330 Ω | – | Pi → red LED anode | 16 (GPIO 23) | brown |
 | Red LED | cathode | GND rail | – | black |
 | R8 330 Ω | – | Pi → green LED anode | 18 (GPIO 24) | green |
 | Green LED | cathode | GND rail | – | black |
+
+Buzzer check: give it 5 V and GND for a moment (no Pi). A steady tone = **active** buzzer (it has its own
+oscillator): it works with our 2 kHz drive too, only the tone sweep in `test_buzzer` sounds the same.
+Silence or a click = **passive**: it needs the 2 kHz signal, which the code already gives.
 
 ### LCD through the level shifter
 

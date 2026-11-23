@@ -17,7 +17,8 @@ sit on printed push-fit pins. Everything comes apart again by hand. The brackets
 double-sided mounting tape.
 
 Parts:
-    box             main box: Pi 4 on pin standoffs, hook windows, cable glands, grommet, vents, wall tabs
+    box             main box: Pi 4 on pin standoffs, a full-size breadboard in a low fence on the floor,
+                    hook windows, cable glands, grommet, vents, wall tabs
     lid             snap hooks, LCD window + pin standoffs, 2 LED holes, buzzer grille + holder,
                     keypad ribbon slot, keypad outline
     fit_test        small test print: one Pi pin, one LCD pin and a piece of wall with a hook window
@@ -27,6 +28,12 @@ Parts:
     magnet_holder   cradle for the magnet (on the door)
     solenoid_plate  mounting plate for the solenoid lock, slotted holes to adjust its position
     strike          L-bracket with the window the lock bolt goes into
+
+Inside the box (breadboard build, Nov 2026): the Pi at the front left with its USB-C towards the front,
+the 830-hole breadboard along the back wall (resistors, level shifter, 12 V divider, LED and buzzer
+parts), the 1-channel relay module for the lock at the front right under the LCD. The KiCad carrier
+PCB is still our design for a later version: it plugs onto the Pi's header and fits the same Pi
+standoffs and the same stack height, so this box works for both.
 
 Print rules used everywhere: wall 2.4 mm, clearance 0.3 mm (per side) for fits, smallest
 feature 1.2 mm. Suggested material PETG (copes better than PLA with condensation near a fridge and
@@ -54,7 +61,7 @@ MIN_FEATURE = 1.2     # nothing thinner or narrower than this
 BED = (220, 220, 250)  # printer build volume (Ender-3 class). VERIFY for the printer you use.
 
 # ---- main box (inside dimensions)
-IN_X, IN_Y, IN_Z = 185.0, 90.0, 40.0
+IN_X, IN_Y, IN_Z = 185.0, 125.0, 50.0   # deeper and taller than v1: the breadboard and its jumper wires
 CORNER_R = 3.0        # rounded outside vertical edges
 LIP_W, LIP_H = 1.2, 3.0   # lid lip that locates the lid inside the box opening
 SMALL_HOLE_D = 3.4    # optional holes in the brackets (zip tie); the brackets are stuck on with tape
@@ -62,7 +69,7 @@ SMALL_HOLE_D = 3.4    # optional holes in the brackets (zip tie); the brackets a
 # ---- snap hooks that hold the lid (no screws). Each is a flexible arm under the lid with a nose that
 #      clicks into a window in the box wall. To open: push the noses in through the windows and lift.
 #      Print fit_test + fit_test_clip first; if the click is too loose or too hard, change HOOK_DEPTH.
-HOOKS = [("left", 15.0), ("left", 75.0), ("right", 15.0), ("right", 75.0)]   # short wall, inside y of the hook
+HOOKS = [("left", 20.0), ("left", 105.0), ("right", 20.0), ("right", 105.0)]   # short wall, inside y of the hook
 HOOK_W = 10.0         # arm width
 HOOK_T = 1.8          # arm thickness: thinner = softer click
 HOOK_L = 12.0         # arm length below the lid
@@ -89,26 +96,38 @@ LCD_BEZEL_H = 7.0         # frame height above the PCB = standoff length under t
 LCD_HOLE_D = 3.2          # the module's mounting holes (for M3)
 LCD_PIN_D = 2.9           # printed push-fit pin through each hole: VERIFY with the fit test
 LCD_PCB_T = 1.6           # module PCB thickness
-LCD_CENTER = (142.5, 47.0)  # from the inside front-left corner of the box
+LCD_CENTER = (140.0, 30.0)  # from the inside front-left corner of the box (front right, above the relay)
 LCD_DEPTH = 21.0          # lid to the bottom of the backpack and its pins. VERIFY
 
 # ---- space the electronics need (used only for the fit check, not printed)
-PI_STACK_H = 30.0     # Pi board + carrier on 12.5 mm header spacers + its tallest part (screw terminals). VERIFY
+PI_STACK_H = 30.0     # Pi board + female jumper wires on the header (or the carrier PCB on 12.5 mm spacers). VERIFY
 PI_PORT_OVERHANG = 3.0  # Ethernet/USB stick out past the board's right edge. VERIFY
+
+# ---- full-size solderless breadboard (830 holes, MB-102 type). Typical size: VERIFY with a ruler.
+#      It sits in a low printed fence on the floor (its own adhesive back can hold it too).
+BREADBOARD = (165.1, 54.6, 8.5)   # length, width, height
+BREADBOARD_AT = (10.0, 70.0)      # front-left corner, inside coordinates: along the back wall
+BB_CLEAR = 0.5                    # breadboards vary a little, so a looser fit than CLEAR
+FENCE_W, FENCE_H = 1.6, 3.0       # fence around the front edge and both ends
+BB_WIRES_H = 20.0                 # how high the jumper wires stand above the breadboard (fit check). VERIFY
+
+# ---- 1-channel 5 V relay module for the lock, stuck on the floor with tape (fit check only). VERIFY
+RELAY_MODULE = (50.0, 26.0, 19.0)  # length, width, height including the relay and screw terminal
+RELAY_AT = (115.0, 3.0)            # front-left corner, inside coordinates
 
 # ---- LEDs and buzzer on the lid
 LED_D = 5.0                     # 5 mm LEDs. VERIFY
-LEDS = [(115.0, 13.0), (130.0, 13.0)]   # red, green (inside coordinates)
-BUZZER_D, BUZZER_H = 12.0, 8.5  # small passive buzzer. VERIFY
-BUZZER_AT = (165.0, 14.0)
-GRILLE_HOLE_D, GRILLE_PITCH, GRILLE_R = 1.6, 3.0, 5.0
-RING_WALL, RING_H = 1.6, 4.0    # holder ring under the lid
+LEDS = [(110.0, 72.0), (125.0, 72.0)]   # red, green (inside coordinates)
+BUZZER_D, BUZZER_H = 16.0, 10.0  # RS PRO 81 dB, 16 mm round, 2 legs: diameter from its name, height VERIFY
+BUZZER_AT = (160.0, 72.0)
+GRILLE_HOLE_D, GRILLE_PITCH, GRILLE_R = 1.6, 3.0, 6.0
+RING_WALL, RING_H = 1.6, 5.0    # holder ring under the lid
 
 # ---- 4x4 membrane keypad, stuck on the lid with its own adhesive. VERIFY the outline.
 #      Its ribbon leaves the bottom edge (below * 0 # D), so the slot is at the keypad's front edge:
 #      the keys then read upright for someone standing at the front of the box.
 KEYPAD = (69.0, 77.0)
-KEYPAD_CENTER = (54.0, 45.0)    # above the Pi (only the thin ribbon goes inside here)
+KEYPAD_CENTER = (50.0, 62.0)    # left half of the lid (only the thin ribbon goes inside here)
 RIBBON_SLOT = (22.0, 4.0)       # must pass the 8-pin connector on the ribbon's end. VERIFY
 RIBBON_SLOT_INSET = 6.0         # slot centre from the keypad's front edge (ribbon side)
 GROOVE_W, GROOVE_D = 1.2, 0.4   # outline groove on the lid's outer face to place the keypad
@@ -117,12 +136,12 @@ GROOVE_W, GROOVE_D = 1.2, 0.4   # outline groove on the lid's outer face to plac
 GLAND_HOLE_D = 12.5   # PG7 gland thread is 12.5 mm. VERIFY with the gland's datasheet
 GLAND_X = [105.0, 125.0, 145.0, 165.0]   # back wall, inside x coordinates
 GLAND_USE = ["DS18B20 probe", "reed switch", "12 V sense", "DHT22 pod"]
-GLAND_Z = 18.0        # centre above the floor (the gland nut needs about 9 mm around the hole)
+GLAND_Z = 26.0        # centre above the floor: the nut (about 9 mm around the hole) clears the breadboard
 GROMMET_HOLE_D = 10.0  # rubber grommet for the lock adapter and solenoid wires. VERIFY with your grommet
-GROMMET_AT = (65.0, 18.0)  # right wall: y, z above the floor
+GROMMET_AT = (20.0, 30.0)  # right wall: y, z above the floor (next to the relay module)
 VENT_W, VENT_H, VENT_PITCH = 1.6, 16.0, 5.0
-VENTS_LEFT = (25.0, 65.0)   # y range on the left wall
-VENTS_RIGHT = (12.0, 40.0)  # y range on the right wall
+VENTS_LEFT = (12.0, 55.0)   # y range on the left wall (Pi side)
+VENTS_RIGHT = (40.0, 112.0)  # y range on the right wall
 TAB = (20.0, 12.0, 4.0)     # wall/shelf fixing tabs on the back, x, y, thickness
 TAB_HOLE_D = 4.5
 TAB_X = [25.0, 150.0]       # inside x of the tab centres
@@ -159,6 +178,7 @@ FEATURES = {                   # checked against MIN_FEATURE
     "vent slot": VENT_W, "keypad groove": GROOVE_W, "pod slot": POD_SLOT_W,
     "grille web": GRILLE_PITCH - GRILLE_HOLE_D,
     "hook arm": HOOK_T, "hook nose": HOOK_DEPTH, "Pi pin": PI_PIN_D, "LCD pin": LCD_PIN_D,
+    "breadboard fence": FENCE_W,
 }
 
 
@@ -260,6 +280,14 @@ def make_box():
         x, y = ix(PI_AT[0] + hx), iy(PI_AT[1] + hy)
         adds.append(cyl(x, y, WALL, STANDOFF_D, STANDOFF_H))
         adds.append(pin(x, y, WALL + STANDOFF_H - 0.01, PI_PIN_D, PI_BOARD[2] + PIN_ABOVE))
+
+    # Low fence that locates the breadboard: front edge and both ends (the back wall is the 4th side)
+    bx0, by0 = BREADBOARD_AT[0] - BB_CLEAR - FENCE_W, BREADBOARD_AT[1] - BB_CLEAR - FENCE_W
+    bx1 = BREADBOARD_AT[0] + BREADBOARD[0] + BB_CLEAR
+    fence_len = bx1 + FENCE_W - bx0
+    adds.append(box(ix(bx0), iy(by0), WALL - 0.01, fence_len, FENCE_W, FENCE_H + 0.01))
+    for x in (bx0, bx1):
+        adds.append(box(ix(x), iy(by0), WALL - 0.01, FENCE_W, IN_Y - by0 + 0.01, FENCE_H + 0.01))
 
     # Fixing tabs on the back, flush with the bottom
     for tx in TAB_X:
@@ -484,9 +512,8 @@ def check(parts):
     return lines
 
 
-def fit_check(box_shape, lid_on_box):
-    """Stand-in blocks for the Pi stack, LCD module and buzzer must not hit the box, the lid or
-    each other. Returns report lines; raises an error on a collision."""
+def stand_ins():
+    """Blocks that stand for the bought parts inside the box (not printed): fit check and pictures."""
     lcx, lcy = ix(LCD_CENTER[0]), iy(LCD_CENTER[1])
     pi_block = box(ix(PI_AT[0]), iy(PI_AT[1]), WALL + STANDOFF_H, PI_BOARD[0] + PI_PORT_OVERHANG, PI_BOARD[1], PI_STACK_H)
     for hx, hy in PI_HOLES:            # the real board has holes where the pins go through
@@ -496,15 +523,28 @@ def fit_check(box_shape, lid_on_box):
     for sx in (-1, 1):
         for sy in (-1, 1):
             lcd_block = lcd_block.cut(cyl(lcx + sx * LCD_HOLES[0] / 2, lcy + sy * LCD_HOLES[1] / 2, 0, LCD_HOLE_D, OUT_Z + 5))
-    blocks = {
-        "Pi + carrier": pi_block,
+    bb = box(ix(BREADBOARD_AT[0]), iy(BREADBOARD_AT[1]), WALL, BREADBOARD[0], BREADBOARD[1], BREADBOARD[2])
+    wires = box(ix(BREADBOARD_AT[0]), iy(BREADBOARD_AT[1]), WALL + BREADBOARD[2], BREADBOARD[0], BREADBOARD[1], BB_WIRES_H)
+    return {
+        "Pi + jumper wires": pi_block,
         "LCD module": lcd_block,
         "buzzer": cyl(ix(BUZZER_AT[0]), iy(BUZZER_AT[1]), OUT_Z - BUZZER_H, BUZZER_D, BUZZER_H),
+        "breadboard": bb,
+        "breadboard wires": wires,
+        "relay module": box(ix(RELAY_AT[0]), iy(RELAY_AT[1]), WALL, *RELAY_MODULE),
     }
+
+
+def fit_check(box_shape, lid_on_box):
+    """The stand-in blocks must not hit the box, the lid or each other. Returns report lines;
+    raises an error on a collision."""
+    blocks = stand_ins()
     solids = dict(blocks, box=box_shape, lid=lid_on_box)
     names = list(solids)
     for i, a in enumerate(names):
         for b in names[i + 1:]:
+            if {a, b} == {"breadboard", "breadboard wires"}:
+                continue                    # the wires sit on the breadboard by design
             if a in blocks or b in blocks:
                 overlap = solids[a].common(solids[b]).Volume
                 if overlap > 0.01:
@@ -514,10 +554,13 @@ def fit_check(box_shape, lid_on_box):
     if overlap > 0.01:
         raise ValueError("fit check: the closed lid overlaps the box (%.1f mm3): check the hooks" % overlap)
     pi_top = WALL + STANDOFF_H + PI_STACK_H
-    return ["Fit check passed: Pi + carrier, LCD module and buzzer clear the box, the lid and each other;",
-            "the closed lid with its 4 hooks in their windows does not overlap the box.",
-            "Space left above the Pi stack: %.1f mm. Below the LCD module: %.1f mm."
-            % (OUT_Z - pi_top, OUT_Z - LCD_DEPTH - WALL)]
+    wires_top = WALL + BREADBOARD[2] + BB_WIRES_H
+    return ["Fit check passed: Pi + jumper wires, breadboard + wires, relay module, LCD module and buzzer",
+            "clear the box, the lid and each other; the closed lid with its 4 hooks does not overlap the box.",
+            "Space left above the Pi stack: %.1f mm. Above the breadboard wires (to the lid): %.1f mm,"
+            % (OUT_Z - pi_top, OUT_Z - wires_top),
+            "to the buzzer: %.1f mm. Between the relay module and the LCD module: %.1f mm."
+            % (OUT_Z - BUZZER_H - wires_top, OUT_Z - LCD_DEPTH - WALL - RELAY_MODULE[2])]
 
 
 def export(parts, assembled):
@@ -541,7 +584,10 @@ def export(parts, assembled):
 COLORS = {"box": (0.80, 0.84, 0.90), "lid": (0.55, 0.70, 0.88), "dht22_pod": (0.95, 0.85, 0.55),
           "reed_holder": (0.70, 0.88, 0.70), "magnet_holder": (0.95, 0.70, 0.70),
           "solenoid_plate": (0.80, 0.75, 0.95), "strike": (0.85, 0.85, 0.85),
-          "fit_test": (0.75, 0.85, 0.95), "fit_test_clip": (0.55, 0.70, 0.88)}
+          "fit_test": (0.75, 0.85, 0.95), "fit_test_clip": (0.55, 0.70, 0.88),
+          "Pi + jumper wires": (0.30, 0.65, 0.35), "breadboard": (0.97, 0.97, 0.95),
+          "breadboard wires": (0.95, 0.60, 0.30), "relay module": (0.25, 0.45, 0.85),
+          "LCD module": (0.20, 0.35, 0.75), "buzzer": (0.15, 0.15, 0.15)}
 
 
 def render(shapes, path, title, elev=28, azim=-60):
@@ -556,17 +602,36 @@ def render(shapes, path, title, elev=28, azim=-60):
     light /= np.linalg.norm(light)
     fig = plt.figure(figsize=(9, 6.5), dpi=110)
     ax = fig.add_subplot(projection="3d")
+    def split(tris, max_edge=12.0):
+        """Cut long triangles in two across their longest edge until every edge is short, so
+        matplotlib's depth sorting (by triangle centre) works for big flat faces too."""
+        while True:
+            edge = np.linalg.norm(tris - np.roll(tris, -1, axis=1), axis=2)   # edge k = point k -> k+1
+            longest = edge.argmax(axis=1)
+            big = edge.max(axis=1) > max_edge
+            if not big.any():
+                return tris
+            t_big, k = tris[big], longest[big]
+            rows = np.arange(len(t_big))
+            p0, p1, p2 = t_big[rows, k], t_big[rows, (k + 1) % 3], t_big[rows, (k + 2) % 3]
+            mid = (p0 + p1) / 2
+            tris = np.concatenate([tris[~big], np.stack([p0, mid, p2], 1), np.stack([mid, p1, p2], 1)])
+
     lo, hi = np.full(3, np.inf), np.full(3, -np.inf)
+    all_tris, all_colors = [], []      # one collection for all parts, so faces are depth-sorted together
     for name, shape in shapes:
         points, facets = shape.tessellate(0.25)
         pts = np.array([[p.x, p.y, p.z] for p in points])
-        tris = pts[np.array(facets)]
+        tris = split(pts[np.array(facets)])
         normals = np.cross(tris[:, 1] - tris[:, 0], tris[:, 2] - tris[:, 0])
         normals /= np.linalg.norm(normals, axis=1, keepdims=True) + 1e-12
         shade = 0.35 + 0.65 * np.abs(normals @ light)
         colors = np.clip(np.outer(shade, COLORS.get(name, (0.8, 0.8, 0.8))), 0, 1)
-        ax.add_collection3d(Poly3DCollection(tris, facecolors=colors, edgecolors="none"))
+        all_tris.append(tris)
+        all_colors.append(colors)
         lo, hi = np.minimum(lo, pts.min(axis=0)), np.maximum(hi, pts.max(axis=0))
+    ax.add_collection3d(Poly3DCollection(np.concatenate(all_tris), facecolors=np.concatenate(all_colors),
+                                         edgecolors="none"))
     ax.set_xlim(lo[0], hi[0])
     ax.set_ylim(lo[1], hi[1])
     ax.set_zlim(lo[2], hi[2])
@@ -647,6 +712,9 @@ def main():
     render(small, os.path.join(png, "small_parts.png"), "Pod, reed + magnet holders, lock plate, strike (as printed)")
     test = [("fit_test", built["fit_test"]), ("fit_test_clip", moved(built["fit_test_clip"], 30.0, 0, WALL + HOOK_L + 6.0))]
     render(test, os.path.join(png, "fit_test.png"), "Fit test: Pi pin, LCD pin, clip clicked into its window", azim=-130)
+    inside = [("box", built["box"])] + [(n, s) for n, s in stand_ins().items() if n != "breadboard wires"]
+    render(inside, os.path.join(png, "inside.png"), "Inside: Pi, breadboard, relay module, LCD and buzzer (lid off)",
+           elev=55, azim=-70)
     render([("box", built["box"]), ("lid", moved(built["lid"], 0, 0, OUT_Z + 25))],
            os.path.join(png, "hooks.png"), "Lid hooks above their windows (left wall)", elev=12, azim=-150)
 

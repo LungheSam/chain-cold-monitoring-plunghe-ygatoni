@@ -28,7 +28,7 @@ Tick the **Have** column as parts arrive.
 |---|---|---|---|
 | 1 | 16×2 LCD with I2C backpack | HD44780 + PCF8574 backpack, 5 V (VERIFY address 0x27 or 0x3F) | |
 | 1 | Logic level shifter | 4-channel BSS138 module (3.3 V ↔ 5 V for the LCD's I2C) | |
-| 1 | Passive buzzer | about 12 mm, 5 V (VERIFY size for the lid holder) | |
+| 1 | Buzzer: RS PRO 81 dB, 16 mm round, 2 legs (received) | 16 mm diameter; height VERIFY for the lid holder; active or passive VERIFY (see wiring.md) | |
 | 1 | Red LED, 5 mm | alarm | |
 | 1 | Green LED, 5 mm | OK | |
 | 1 | 4×4 membrane keypad | ribbon R1–R4, C1–C4 (seller's diagram) | |

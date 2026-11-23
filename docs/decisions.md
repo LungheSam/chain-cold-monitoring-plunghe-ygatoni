@@ -236,5 +236,5 @@ everything else. The dashboard is a second Railway service (`frontend/`, `npm st
 - [ ] Keypad flat-cable and connector width (for the lid slot)
 - [ ] Time of one PIN check on the Pi (`python -m coldchain.pins time`, 17 ms on the laptop; should stay under ~100 ms)
 - [ ] DHT22 module: has its own pull-up?
-- [ ] Enclosure: every `VERIFY` parameter in `hardware/freecad/exports/report.txt` (LCD bezel and depth, keypad and ribbon, solenoid holes and bolt, reed/magnet bodies, Pi + carrier stack height 30 mm assumed) and the **fit test** for the printed pins and snap hooks (no screws)
+- [ ] Enclosure: every `VERIFY` parameter in `hardware/freecad/exports/report.txt` (LCD bezel and depth, keypad and ribbon, solenoid holes and bolt, reed/magnet bodies, Pi + jumper-wire stack height 30 mm assumed, breadboard, relay module, buzzer height) and the **fit test** for the printed pins and snap hooks (no screws)
 - [ ] Cable diameters (DS18B20 probe, reed) for the PG7 glands (PG7 fits about 3–6.5 mm cable: VERIFY with the gland's datasheet)
