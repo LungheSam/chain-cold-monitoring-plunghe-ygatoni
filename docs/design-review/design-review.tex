@@ -307,11 +307,8 @@ module, lock supply and solenoid lock.}
 
 \begin{figure}[!t]
 \centering
-% PHOTO PLACEHOLDER: replace the \colorbox line with
-%   \includegraphics[width=\columnwidth]{figures/breadboard-photo.jpg}
-\colorbox{gray!15}{\parbox[c][3.6cm][c]{0.94\columnwidth}{\centering\small\color{noteRed}
-Photo of the breadboard: Raspberry Pi, probe, sensors, LEDs and buzzer\\(to be added)}}
-\caption{Breadboard prototype of the edge node.}
+\includegraphics[width=0.82\columnwidth]{figures/breadboard-photo.jpg}
+\caption{Breadboard prototype of the edge node, running with all its sensors.}
 \label{fig:photo}
 \end{figure}
 
@@ -404,8 +401,6 @@ In a real cut, the Pi would also lose power unless it has a backup supply. We st
 an uninterruptible power supply (UPS) board that does not use our GPIO pins.
 % Column break: ends the left column here so the last page's columns end at the same height
 % (flushend cannot move text past the figure and table at the top of that page).
-% If the layout changes (e.g. after adding the photo), move or remove this \newpage.
-\newpage
 \item \emph{Cloud services.} The free HiveMQ plan closed, so we use EMQX Cloud; the back end and
 the dashboard run on Railway.
 \item \emph{SMS delivery.} With Africa's Talking's shared sender identifier (ID), our messages
