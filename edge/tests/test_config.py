@@ -3,6 +3,14 @@ import pytest
 from coldchain.config import load_settings
 
 
+def test_lock_type_defaults_to_relay_and_accepts_servo():
+    assert load_settings({})["LOCK_TYPE"] == "relay"
+    s = load_settings({"LOCK_TYPE": "servo"})
+    assert s["LOCK_TYPE"] == "servo" and s["SERVO_UNLOCKED_DEG"] == 90
+    with pytest.raises(ValueError):
+        load_settings({"LOCK_TYPE": "magnet"})
+
+
 def test_demo_profile_is_default():
     s = load_settings({})
     assert s["PROFILE"] == "demo"

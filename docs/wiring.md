@@ -15,7 +15,7 @@ Anything marked **VERIFY** must be measured or checked on the real part before c
 | Red LED | 23 | 16 | out | 330 Ω |
 | Green LED | 24 | 18 | out | 330 Ω |
 | I2C SDA / SCL | 2 / 3 | 3 / 5 | I2C | LCD at 0x27 (VERIFY with `i2cdetect -y 1`). Pi has 1.8 kΩ pull-ups to 3.3 V on the board |
-| Lock relay module IN | 25 | 22 | out | GPIO 25 is pulled down at boot, so a module that switches on with a HIGH input stays off (use one, or set its H/L jumper to H) |
+| Lock: relay module IN, or servo signal (demo build, `LOCK_TYPE=servo`) | 25 | 22 | out | GPIO 25 is pulled down at boot, so a module that switches on with a HIGH input stays off (use one, or set its H/L jumper to H) |
 | Keypad rows R1–R4 | 5, 6, 13, 19 | 29, 31, 33, 35 | out (scan) | |
 | Keypad cols C1–C4 | 12, 16, 20, 21 | 32, 36, 38, 40 | in, internal pull-up | |
 | Spare | 26 | 37 | | kept free (e.g. a hardware ack button later) |
@@ -80,6 +80,26 @@ No logic-level MOSFET is sold locally, so a **5 V relay module** switches the lo
   fuse; until then, use a 24 V adapter for it, never the Pi.
 - The lock has four wires: two for the coil, and probably two for a built-in door switch. VERIFY the
   colours with the seller's sheet or a multimeter before connecting.
+
+## Servo latch (demo build, D19)
+
+The 12 V cabinet lock did not arrive in time, so a hobby servo turns a latch instead. Set
+`LOCK_TYPE=servo` in `edge/.env`.
+
+| Servo wire | Connects to | Pi pin |
+|---|---|---|
+| brown or black (GND) | GND rail | – |
+| red (+) | 5 V rail | – |
+| orange or yellow (signal) | Pi | 22 (GPIO 25) |
+
+- **Power:** a micro servo (SG90 / MG90S class, VERIFY the model) can use the Pi's 5 V if the Pi has
+  the official 3 A supply. Put a 100–470 µF capacitor across the servo's 5 V and GND (stripe to GND)
+  if the Pi resets or the LCD flickers when it moves. A bigger servo (MG996R class, up to about 2 A
+  when it stalls) needs its own 5–6 V supply, with its GND joined to the Pi's GND.
+- **Signal:** 3.3 V from the Pi is enough for most hobby servos. No relay, no diode.
+- **Angles:** `.venv/bin/python -m tests.hw.test_lock 45` moves it to 45°. Try angles until the
+  latch is closed and open, then set `SERVO_LOCKED_DEG` and `SERVO_UNLOCKED_DEG` in `.env`.
+  Avoid angles where the servo pushes against a stop (it hums and draws a high current).
 
 ## Peltier switching
 

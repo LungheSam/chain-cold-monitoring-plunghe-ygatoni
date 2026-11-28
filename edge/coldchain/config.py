@@ -29,6 +29,9 @@ def load_settings(env=None):
     if profile not in PROFILES:
         raise ValueError(f"PROFILE must be one of {list(PROFILES)}, got {profile!r}")
 
+    lock_type = env.get("LOCK_TYPE", "relay")
+    if lock_type not in ("relay", "servo"):
+        raise ValueError(f"LOCK_TYPE must be relay or servo, got {lock_type!r}")
     settings = {
         "UNIT_ID": env.get("UNIT_ID", "cold-unit-01"),
         "PROFILE": profile,
@@ -48,6 +51,15 @@ def load_settings(env=None):
         # 1 for relay modules that switch on with a LOW input. Prefer a module (or jumper) that
         # switches on with HIGH: an active-LOW module can click on while the Pi boots.
         "LOCK_ACTIVE_LOW": env.get("LOCK_ACTIVE_LOW", "0") == "1",
+        # What opens the door: "relay" (relay module + solenoid cabinet lock) or "servo" (a hobby
+        # servo turns a latch; used for the demo because the 12 V lock did not arrive in time).
+        "LOCK_TYPE": lock_type,
+        # Servo: the two latch positions, and the pulse widths for 0 and 180 degrees.
+        # 0.5-2.4 ms is typical for SG90-class micro servos: VERIFY on yours with tests/hw/test_lock.py
+        "SERVO_LOCKED_DEG": float(env.get("SERVO_LOCKED_DEG", "0")),
+        "SERVO_UNLOCKED_DEG": float(env.get("SERVO_UNLOCKED_DEG", "90")),
+        "SERVO_MIN_PULSE_MS": float(env.get("SERVO_MIN_PULSE_MS", "0.5")),
+        "SERVO_MAX_PULSE_MS": float(env.get("SERVO_MAX_PULSE_MS", "2.4")),
         "PINS_FILE": env.get("PINS_FILE", "./pins.json"),
     }
     settings.update(PROFILES[profile])

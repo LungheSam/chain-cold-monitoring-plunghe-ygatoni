@@ -1,7 +1,7 @@
 """Real Raspberry Pi hardware (MOCK_HARDWARE=0). Same interface as mock.py.
 
 GPIO (BCM): DS18B20 4, DHT22 17, reed 27, mains sense 22, buzzer 18, red LED 23, green LED 24,
-lock gate 25, LCD on I2C (SDA 2, SCL 3) at 0x27.
+lock (relay module IN or servo signal) 25, LCD on I2C (SDA 2, SCL 3) at 0x27.
 
 gpiozero and RPLCD are imported here only, so the rest of the code runs on a laptop.
 """
@@ -87,13 +87,60 @@ class PiSensors:
         )
 
 
-class PiOutputs:
-    """LEDs and buzzer. Blinking is timed from the main loop (called every 0.1 s), no extra threads."""
+class ServoLock:
+    """A hobby servo that turns a latch between a "locked" and an "unlocked" angle (LOCK_TYPE=servo).
 
-    def __init__(self, lock_active_low=False):
-        # Lock first, and OFF: the solenoid must never open at start-up (D8). access.py times the pulses.
-        # With an active-LOW relay module, "off" means the pin is held HIGH (gpiozero does the inversion).
-        self.lock_pin = DigitalOutputDevice(PIN_LOCK, active_high=not lock_active_low, initial_value=False)
+    The signal stops 0.8 s after every move: a small servo holds its position without it, and it
+    does not buzz or warm up. If the program crashes the servo simply stays where it is; at every
+    start it is turned to "locked" first.
+    """
+
+    MOVE_S = 0.8        # time to reach the new angle before the signal is stopped. VERIFY on yours
+
+    def __init__(self, settings):
+        from gpiozero import AngularServo
+        self.locked_deg = settings["SERVO_LOCKED_DEG"]
+        self.unlocked_deg = settings["SERVO_UNLOCKED_DEG"]
+        self.servo = AngularServo(PIN_LOCK, initial_angle=self.locked_deg, min_angle=0, max_angle=180,
+                                  min_pulse_width=settings["SERVO_MIN_PULSE_MS"] / 1000,
+                                  max_pulse_width=settings["SERVO_MAX_PULSE_MS"] / 1000)
+        self._timer = None
+        self._stop_later()
+
+    def _stop_later(self):
+        if self._timer:
+            self._timer.cancel()
+        self._timer = threading.Timer(self.MOVE_S, self.servo.detach)
+        self._timer.daemon = True
+        self._timer.start()
+
+    def set(self, unlocked):
+        self.servo.angle = self.unlocked_deg if unlocked else self.locked_deg
+        self._stop_later()
+
+    def close(self):
+        """On shutdown: turn to "locked", wait for it to get there, then stop the signal."""
+        if self._timer:
+            self._timer.cancel()
+        self.servo.angle = self.locked_deg
+        time.sleep(self.MOVE_S)
+        self.servo.detach()
+
+
+class PiOutputs:
+    """LEDs, buzzer and lock. Blinking is timed from the main loop (called every 0.1 s)."""
+
+    def __init__(self, settings=None):
+        settings = settings or {}
+        # Lock first, and LOCKED: the door must never open at start-up (D8). access.py times the openings.
+        self.servo = None
+        self.lock_pin = None
+        if settings.get("LOCK_INSTALLED") and settings.get("LOCK_TYPE") == "servo":
+            self.servo = ServoLock(settings)
+        else:
+            # Relay module. With an active-LOW module, "off" means the pin is held HIGH (gpiozero inverts).
+            self.lock_pin = DigitalOutputDevice(PIN_LOCK, active_high=not settings.get("LOCK_ACTIVE_LOW", False),
+                                                initial_value=False)
         self.red = LED(PIN_RED)
         self.green = LED(PIN_GREEN)
         # Passive buzzer through an NPN transistor: square wave at 2 kHz, 50 % duty when on.
@@ -114,11 +161,19 @@ class PiOutputs:
         self.buzzer.value = 0.5 if buzz else 0
 
     def set_lock(self, on):
-        self.lock_pin.value = bool(on)
+        """on = unlocked."""
+        if self.servo:
+            self.servo.set(bool(on))
+        else:
+            self.lock_pin.value = bool(on)
 
     def all_off(self):
-        for device in (self.buzzer, self.red, self.green, self.lock_pin):
+        for device in (self.buzzer, self.red, self.green):
             device.off()
+        if self.servo:
+            self.servo.close()
+        else:
+            self.lock_pin.off()
         self._last = (None, None, None)
 
 

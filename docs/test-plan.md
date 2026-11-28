@@ -95,8 +95,8 @@ simulator). D1–D3 need a live account with a little credit.
 | F1 | Keypad PIN | lock opens 5 s, ACCESS_GRANTED with the name | |
 | F2 | 3 wrong PINs | keypad locked 60 s, LCD shows the countdown | |
 | F3 | QR code | scan the printed label with a phone, sign in as supervisor, unlock: lock opens, logged with the email | |
-| F4 | Lock safe on crash | kill the service while the lock is open: `pinctrl get 25` shows input, pull-down; lock closed | |
-| F5 | Lock current | multimeter in series with the solenoid: about 1 A (VERIFY value for the PCB tracks) | |
+| F4 | Lock safe on crash | relay lock: kill the service while open: `pinctrl get 25` shows input, pull-down; lock closed. Servo (demo): it stays where it is until the service restarts (5 s), then turns to locked | |
+| F5 | Lock current | relay lock: multimeter in series with the solenoid (VERIFY against its label). Servo: the Pi does not reset or flicker the LCD when it moves | |
 
 ### G. Mechanical
 

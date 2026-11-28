@@ -96,6 +96,19 @@ def test_lock_starts_off_pulses_5_s_and_rests():
     assert lock.pulse() is None
 
 
+def test_servo_lock_stays_open_the_whole_time_without_rest():
+    clock, hw = FakeClock(), []
+    lock = LockControl(clock, hw.append, pulse_s=None, rest_s=0)
+    assert lock.pulse(5) is None and hw[-1] is True
+    clock.advance(4.9)
+    lock.update()
+    assert lock.is_open()                        # still unlocked after 4.9 s
+    clock.advance(0.2)
+    lock.update()
+    assert hw[-1] is False and not lock.is_open()
+    assert lock.pulse() is None                  # no cool-down: opens again at once
+
+
 def test_cabinet_lock_gets_only_a_short_pulse():
     # Our lock's label says "power-on time 500 ms": a 5 s unlock powers the coil for 0.5 s only
     clock = FakeClock()

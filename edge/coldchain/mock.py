@@ -110,7 +110,7 @@ class MockOutputs:
                      outputs["red"], outputs["green"], "ON" if outputs["buzzer"] else "off")
 
     def set_lock(self, on):
-        log.info("LOCK %s", "OPEN (energised)" if on else "closed")
+        log.info("LOCK %s", "OPEN" if on else "closed")
 
     def all_off(self):
         self.state = None

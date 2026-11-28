@@ -7,6 +7,7 @@ cd ~/coldchain/edge
 .venv/bin/python -m tests.hw.test_dht22      # one part: dht22, ds18b20, reed, leds, buzzer, mains, keypad, lock, lcd
 .venv/bin/python -m coldchain.node --no-mqtt # the whole node, offline (Ctrl+C to stop)
 .venv/bin/python -m coldchain.node           # the whole node, connected to EMQX -> Railway dashboard
+.venv/bin/python -m tests.hw.test_lock 45    # servo latch: move to 45 degrees, to find the lock angles
 ```
 
 Every hardware test shows its progress and PASS/FAIL on the LCD as well as in the terminal.

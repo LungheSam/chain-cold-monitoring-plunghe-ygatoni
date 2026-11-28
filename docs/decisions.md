@@ -221,6 +221,23 @@ everything else. The dashboard is a second Railway service (`frontend/`, `npm st
 - A broker on Railway was considered and rejected: MQTT is not HTTP, so it would need Railway's TCP
   proxy (random port, possibly blocked on campus) and our own TLS certificate copied to the Pi.
 
+## D19. Servo latch instead of the solenoid lock for the demo: decided (28 Nov 2026)
+
+The 12 V cabinet lock did not arrive in time, and the 24 V one cannot run from our 12 V supply.
+For the demonstration a **hobby servo turns a printed or improvised latch** between a "locked" and an
+"unlocked" angle. Everything above the output stays the same: keypad PIN, QR unlock, 5 s opening,
+ACCESS_GRANTED/DENIED events with the name, lockout after 3 wrong PINs.
+
+- `LOCK_TYPE=servo` in `edge/.env` (default `relay` keeps the relay + solenoid path for a real unit).
+- Same pin: GPIO 25 (pin 22) carries the servo signal. The servo gets 5 V and GND; no relay, no diode.
+- The servo is turned to "locked" at every start. Its signal stops 0.8 s after each move (no buzzing,
+  no heating); a small servo holds its position without it. If the program crashes while the
+  door is open, the servo stays open until the service restarts (5 s) and turns it back: acceptable
+  for a demo, not for a real store, where the fail-secure solenoid lock is the design.
+- No cool-down between openings (`rest_s=0`): a servo does not heat like a solenoid coil.
+- Angles and pulse widths are settings (`SERVO_LOCKED_DEG`, `SERVO_UNLOCKED_DEG`,
+  `SERVO_MIN_PULSE_MS`, `SERVO_MAX_PULSE_MS`), found with `python -m tests.hw.test_lock <angle>`.
+
 ## Things to measure (VERIFY list)
 
 - [ ] LCD I2C address (`i2cdetect -y 1`), and whether the backpack has 5 V pull-ups (see `wiring.md`)

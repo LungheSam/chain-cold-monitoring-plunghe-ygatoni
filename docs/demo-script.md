@@ -7,7 +7,7 @@ happens in front of the audience. Say once that a real fridge uses 5 min / 2 min
 ## On the table
 
 - The cooler box (Peltier fridge), the probe inside, the Pi box with LCD, LEDs, buzzer and keypad, the
-  DHT22 pod outside, reed switch and solenoid lock on the door.
+  DHT22 pod outside, reed switch and the servo latch on the door (stands in for the solenoid lock, D19).
 - Laptop on the dashboard Overview page (full screen), second tab on the Analytics page.
 - Supervisor phone: signed in to the dashboard, ready to receive the SMS. Printed Door QR label on the fridge.
 - A small flask of warm water (about 30 °C) and a cup of ice water. A towel.
@@ -27,7 +27,7 @@ happens in front of the audience. Say once that a real fridge uses 5 min / 2 min
 | 2:15 | Y | Excursions page | Each excursion: start, end, minimum, maximum and the likely cause. This tells the pharmacist which stock to check. CSV export for their records. |
 | 2:40 | S | Open the fridge door and leave it | Door open too long: alarm after 15 s. Every opening is logged with its duration. Close it. |
 | 3:00 | S | Unplug the 12 V adapter, plug it back | Power cut detected in 3 s; the Pi stays on its own supply and reports when power returns. |
-| 3:15 | S | Type the PIN then `#` | The lock clicks open for 5 s: access only with a PIN, three wrong PINs lock the keypad for a minute. |
+| 3:15 | S | Type the PIN then `#` | The servo turns the latch open for 5 s: access only with a PIN, three wrong PINs lock the keypad for a minute. |
 | 3:35 | Y | Scan the QR label with the phone, press Unlock | Supervisors can also open it from their phone. Both openings appear in the access log with the person's name. |
 | 4:00 | Y | Analytics tab | A week of history (generated test data, say so): % of time in range, excursions, door openings, power cuts, mean kinetic temperature. |
 | 4:20 | Y | Open `/things/cold-unit-01` in a new tab | The fridge is a W3C Web Thing: any WoT client can read its properties, call its actions and subscribe to its events. |
@@ -62,4 +62,4 @@ happens in front of the audience. Say once that a real fridge uses 5 min / 2 min
 | Cloud back end down | Show the local alarm and LCD; show the dashboard in demo mode on the laptop (`npm run demo` in `frontend/`). |
 | SMS late | Carry on; show the SMS when it arrives (Africa's Talking delivery can take up to a minute). |
 | Probe warms too slowly | Hold it in a closed hand; the confirm delay is 20 s once it passes 8 °C. |
-| Lock does not click | Check the 5 V lock adapter is plugged in; the rest of the demo does not depend on it. |
+| Servo does not move | Check its 3 wires (GND, 5 V, signal on pin 22) and `LOCK_TYPE=servo` in `.env`; the rest of the demo does not depend on it. |
