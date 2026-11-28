@@ -242,7 +242,7 @@ def main(argv=None):
         from coldchain.hardware import PiLcd, PiOutputs, PiSensors
         from coldchain.sysfs import wifi_up
         outputs = PiOutputs(settings)   # first: lock and buzzer pins in a safe state (locked, silent)
-        sensors = PiSensors()
+        sensors = PiSensors(settings["REED_INVERTED"])
         lcd = PiLcd(int(os.environ.get("LCD_ADDRESS", "0x27"), 16))
         wifi_fn = wifi_up
         if settings["KEYPAD_INSTALLED"]:

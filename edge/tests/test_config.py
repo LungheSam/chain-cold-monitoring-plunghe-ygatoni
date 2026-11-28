@@ -11,6 +11,11 @@ def test_lock_type_defaults_to_relay_and_accepts_servo():
         load_settings({"LOCK_TYPE": "magnet"})
 
 
+def test_reed_inverted_setting():
+    assert load_settings({})["REED_INVERTED"] is False
+    assert load_settings({"REED_INVERTED": "1"})["REED_INVERTED"] is True
+
+
 def test_demo_profile_is_default():
     s = load_settings({})
     assert s["PROFILE"] == "demo"

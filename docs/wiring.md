@@ -9,7 +9,7 @@ Anything marked **VERIFY** must be measured or checked on the real part before c
 |---|---|---|---|---|
 | DS18B20 data | 4 | 7 | in (1-Wire) | `dtoverlay=w1-gpio,gpiopin=4`, 4.7 kΩ to 3.3 V |
 | DHT22 data | 17 | 11 | in | `dtoverlay=dht11,gpiopin=17`, 10 kΩ to 3.3 V (many modules already have it: VERIFY) |
-| Reed switch | 27 | 13 | in, internal pull-up | other leg to GND; door closed = contact closed = LOW (VERIFY with a multimeter) |
+| Reed switch | 27 | 13 | in, internal pull-up | other leg to GND; door closed = contact closed = LOW. Our MC-38 reads the other way round: `REED_INVERTED=1` in `edge/.env` |
 | Mains sense | 22 | 15 | in, **no** internal pull | divider output; HIGH = 12 V present |
 | Buzzer | 18 | 12 | out (PWM ~2 kHz) | through NPN driver |
 | Red LED | 23 | 16 | out | 330 Ω |

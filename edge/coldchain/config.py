@@ -60,6 +60,8 @@ def load_settings(env=None):
         "SERVO_UNLOCKED_DEG": float(env.get("SERVO_UNLOCKED_DEG", "90")),
         "SERVO_MIN_PULSE_MS": float(env.get("SERVO_MIN_PULSE_MS", "0.5")),
         "SERVO_MAX_PULSE_MS": float(env.get("SERVO_MAX_PULSE_MS", "2.4")),
+        # 1 if the reed switch reads the wrong way round (contact OPEN when the magnet is near).
+        "REED_INVERTED": env.get("REED_INVERTED", "0") == "1",
         "PINS_FILE": env.get("PINS_FILE", "./pins.json"),
     }
     settings.update(PROFILES[profile])

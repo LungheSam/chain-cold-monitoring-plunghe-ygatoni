@@ -31,8 +31,10 @@ DHT22_EVERY_S = 3.0     # the DHT22 needs at least 2 s between reads
 class PiSensors:
     """Reads the slow sensors in a background thread; door and mains are read directly."""
 
-    def __init__(self):
+    def __init__(self, reed_inverted=False):
         # Reed switch: contact closed (door closed) pulls GPIO 27 LOW through the internal pull-up.
+        # reed_inverted (REED_INVERTED=1): our switch opens its contact when the magnet is near.
+        self.reed_inverted = reed_inverted
         # VERIFY with tests/hw/test_reed.py that "closed" really means the magnet is near.
         # Debouncing is done in the alarm engine (50 ms), so bounce_time is not used here.
         self.reed = Button(PIN_REED, pull_up=True)
@@ -80,7 +82,7 @@ class PiSensors:
             internal_temp=internal,
             ambient_temp=ambient,
             humidity=humidity,
-            door_open=not self.reed.is_pressed,
+            door_open=self.reed.is_pressed if self.reed_inverted else not self.reed.is_pressed,
             mains_present=bool(self.mains.value),
             internal_new=internal_new,
             ambient_new=ambient_new,
